@@ -87,7 +87,7 @@ function Index() {
           </div>
           <div />
           <a
-            href="https://github.com/Davi-levy"
+            href="https://github.com/Davi-levy/RUMO"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 hover:text-foreground transition-colors"
