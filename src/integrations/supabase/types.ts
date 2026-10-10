@@ -1,0 +1,218 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
+  public: {
+    Tables: {
+      exercicios: {
+        Row: {
+          criado_em: string
+          dica: string | null
+          explicacao: string | null
+          id: string
+          modulo_id: string
+          ordem: number
+          pergunta: string
+          resposta_esperada: string
+        }
+        Insert: {
+          criado_em?: string
+          dica?: string | null
+          explicacao?: string | null
+          id?: string
+          modulo_id: string
+          ordem: number
+          pergunta: string
+          resposta_esperada: string
+        }
+        Update: {
+          criado_em?: string
+          dica?: string | null
+          explicacao?: string | null
+          id?: string
+          modulo_id?: string
+          ordem?: number
+          pergunta?: string
+          resposta_esperada?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercicios_modulo_id_fkey"
+            columns: ["modulo_id"]
+            isOneToOne: false
+            referencedRelation: "modulos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      modulos: {
+        Row: {
+          conteudo: string
+          criado_em: string
+          id: string
+          ordem: number
+          titulo: string
+          trilha_id: string
+        }
+        Insert: {
+          conteudo?: string
+          criado_em?: string
+          id?: string
+          ordem: number
+          titulo: string
+          trilha_id: string
+        }
+        Update: {
+          conteudo?: string
+          criado_em?: string
+          id?: string
+          ordem?: number
+          titulo?: string
+          trilha_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modulos_trilha_id_fkey"
+            columns: ["trilha_id"]
+            isOneToOne: false
+            referencedRelation: "trilhas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          criado_em: string
+          email: string | null
+          id: string
+          nome: string | null
+        }
+        Insert: {
+          criado_em?: string
+          email?: string | null
+          id: string
+          nome?: string | null
+        }
+        Update: {
+          criado_em?: string
+          email?: string | null
+          id?: string
+          nome?: string | null
+        }
+        Relationships: []
+      }
+      respostas: {
+        Row: {
+          acertou: boolean
+          criado_em: string
+          exercicio_id: string
+          feedback: string | null
+          id: string
+          resposta: string
+          usuario_id: string
+        }
+        Insert: {
+          acertou?: boolean
+          criado_em?: string
+          exercicio_id: string
+          feedback?: string | null
+          id?: string
+          resposta: string
+          usuario_id: string
+        }
+        Update: {
+          acertou?: boolean
+          criado_em?: string
+          exercicio_id?: string
+          feedback?: string | null
+          id?: string
+          resposta?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "respostas_exercicio_id_fkey"
+            columns: ["exercicio_id"]
+            isOneToOne: false
+            referencedRelation: "exercicios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "respostas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trilhas: {
+        Row: {
+          criado_em: string
+          descricao: string | null
+          id: string
+          linguagem: string
+          nivel: string
+          titulo: string
+          usuario_id: string
+        }
+        Insert: {
+          criado_em?: string
+          descricao?: string | null
+          id?: string
+          linguagem: string
+          nivel: string
+          titulo: string
+          usuario_id: string
+        }
+        Update: {
+          criado_em?: string
+          descricao?: string | null
+          id?: string
+          linguagem?: string
+          nivel?: string
+          titulo?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trilhas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+export type Tables<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Row"]
+export type TablesInsert<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Insert"]
+export type TablesUpdate<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Update"]
