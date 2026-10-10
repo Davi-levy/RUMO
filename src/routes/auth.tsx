@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ChevronRight } from "lucide-react";
+import { isAuthError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -38,31 +39,43 @@ function AuthPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (enviando) return;
     setEnviando(true);
     const mail = email.trim().toLowerCase();
 
     try {
       if (modo === "criar") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: mail,
           password: senha,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/auth`,
             data: { nome: nome.trim() || mail.split("@")[0] },
           },
         });
         if (error) throw error;
-        toast.success("Conta criada. Bem-vindo.");
+        if (data.session) {
+          toast.success("Conta criada. Bem-vindo.");
+        } else {
+          toast.success("Confira seu email para confirmar o cadastro antes de entrar.");
+          setModo("entrar");
+          setSenha("");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: mail, password: senha });
         if (error) throw error;
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro inesperado";
-      if (/Invalid login credentials/i.test(msg)) toast.error("Email ou senha incorretos.");
-      else if (/already registered/i.test(msg)) toast.error("Este email já tem conta. Faça login.");
-      else if (/Email not confirmed/i.test(msg)) toast.error("Confirme seu email antes de entrar.");
+      const code = isAuthError(err) ? err.code : undefined;
+      if (code === "invalid_credentials" || /Invalid login credentials/i.test(msg)) toast.error("Email ou senha incorretos.");
+      else if (code === "user_already_exists" || code === "email_exists" || /already registered/i.test(msg)) toast.error("Este email já tem conta. Faça login.");
+      else if (code === "email_not_confirmed" || /Email not confirmed/i.test(msg)) toast.error("Confirme seu email antes de entrar.");
+      else if (code === "weak_password") toast.error("A senha não atende aos requisitos de segurança. Escolha uma senha mais forte.");
+      else if (code === "over_request_rate_limit" || code === "over_email_send_rate_limit") toast.error("Muitas tentativas. Aguarde um pouco antes de tentar novamente.");
+      else if (code === "email_address_invalid") toast.error("Informe um email válido.");
       else if (/at least/i.test(msg)) toast.error("A senha precisa ter no mínimo 6 caracteres.");
+      else if (/fetch|network/i.test(msg)) toast.error("Não foi possível conectar. Verifique sua conexão e tente novamente.");
       else toast.error(msg);
     } finally {
       setEnviando(false);
@@ -150,6 +163,7 @@ function AuthPage() {
 
           <button
             onClick={() => setModo(modo === "entrar" ? "criar" : "entrar")}
+            disabled={enviando}
             className="mt-8 w-full text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             {modo === "entrar" ? "Não tem conta? Criar" : "Já tem conta? Entrar"}
