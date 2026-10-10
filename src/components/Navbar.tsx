@@ -1,15 +1,27 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 export function Navbar() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [saindo, setSaindo] = useState(false);
 
   async function sair() {
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    if (saindo) return;
+    setSaindo(true);
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "local" });
+      if (error) throw error;
+      await navigate({ to: "/auth", replace: true });
+    } catch {
+      toast.error("Não foi possível sair. Tente novamente.");
+    } finally {
+      setSaindo(false);
+    }
   }
 
   return (
@@ -33,6 +45,7 @@ export function Navbar() {
               </Link>
               <button
                 onClick={sair}
+                disabled={saindo}
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 Sair
