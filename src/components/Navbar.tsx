@@ -33,7 +33,15 @@ export function Navbar() {
           <ChevronRight className="w-5 h-5" strokeWidth={1.5} />
           <span className="logo-outline">RUMO</span>
         </Link>
-        <div className="flex items-center gap-8 text-sm">
+        <div className="flex items-center gap-4 sm:gap-8 text-sm">
+          <Link
+            to="/"
+            hash="como-funciona"
+            hashScrollIntoView={{ behavior: "smooth", block: "start" }}
+            className="text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+          >
+            Como funciona?
+          </Link>
           {user ? (
             <>
               <Link

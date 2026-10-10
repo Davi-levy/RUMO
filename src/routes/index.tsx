@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Github, ChevronRight } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { LanguageIcon } from "@/components/LanguageIcon";
 
 
 export const Route = createFileRoute("/")({
@@ -13,11 +14,7 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const features = [
-  { num: "01", title: "Trilhas", desc: "Caminhos estruturados, do básico ao avançado, organizados por tema." },
-  { num: "02", title: "Feedback da IA", desc: "Análise instantânea da sua resposta com sugestões personalizadas." },
-  { num: "03", title: "Progresso", desc: "Acompanhe sua evolução em cada trilha de forma clara e objetiva." },
-];
+const linguagens = ["Python", "TypeScript", "Rust", "Go", "React", "SQL", "Java", "Kotlin", "Next.js", "C"];
 
 function Index() {
   return (
@@ -56,24 +53,59 @@ function Index() {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="px-6 py-32 border-t border-border">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="font-display text-3xl md:text-5xl font-bold mb-16 max-w-2xl">
-            Tudo que você precisa para progredir
+      {/* Bento */}
+      <section id="como-funciona" className="px-6 py-32 border-t border-border scroll-mt-16">
+        <div className="max-w-5xl mx-auto">
+          <div className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground mb-4">Como funciona</div>
+          <h2 className="font-display text-4xl md:text-5xl font-bold leading-[1.1] mb-16 max-w-2xl">
+            Tudo o que você precisa para sair do zero ou avançar
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-px bg-border">
-            {features.map((f) => (
-              <div
-                key={f.num}
-                className="bg-background p-10 group cursor-default border border-transparent hover:border-foreground transition-colors duration-300"
-              >
-                <div className="font-mono text-xs text-muted-foreground mb-8">{f.num}</div>
-                <h3 className="font-display text-2xl font-bold mb-4">{f.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{f.desc}</p>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="bento md:col-span-2">
+              <div className="font-mono text-xs text-muted-foreground mb-6">Trilhas</div>
+              <h3 className="text-2xl font-medium mb-3">Qualquer linguagem, qualquer framework</h3>
+              <p className="text-muted-foreground leading-relaxed max-w-md">
+                Diga o que quer aprender e o seu nível. A trilha chega organizada em módulos, do básico ao avançado.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-2">
+                {linguagens.map((l) => (
+                  <span key={l} className="inline-flex items-center gap-1.5 border border-border px-2.5 py-1 font-mono text-xs text-muted-foreground">
+                    <LanguageIcon language={l} />
+                    {l}
+                  </span>
+                ))}
               </div>
-            ))}
+            </div>
+
+            <div className="bento">
+              <div className="font-mono text-xs text-muted-foreground mb-6">Exercícios</div>
+              <h3 className="text-2xl font-medium mb-3">Correção na hora</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Responda e receba um retorno imediato sobre o que acertou e o que falta.
+              </p>
+            </div>
+
+            <div className="bento">
+              <div className="font-mono text-xs text-muted-foreground mb-6">Conteúdo</div>
+              <h3 className="text-2xl font-medium mb-3">Explicações com exemplos</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Cada módulo traz texto claro e trechos de código para estudar no seu ritmo.
+              </p>
+            </div>
+
+            <div className="bento md:col-span-2">
+              <div className="font-mono text-xs text-muted-foreground mb-6">Progresso</div>
+              <h3 className="text-2xl font-medium mb-3">Veja até onde você chegou</h3>
+              <p className="text-muted-foreground leading-relaxed max-w-md">
+                Seu avanço fica salvo na sua conta, trilha por trilha.
+              </p>
+              <div className="mt-8 h-1.5 w-full bg-secondary overflow-hidden">
+                <div className="h-full w-[62%] bg-foreground" />
+              </div>
+              <div className="mt-3 flex justify-between font-mono text-xs text-muted-foreground">
+              </div>
+            </div>
           </div>
         </div>
       </section>

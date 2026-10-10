@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { gerarEsqueleto, gerarModulo } from "@/lib/trilha.functions";
 import { NIVEIS, type Nivel } from "@/lib/trilha.shared";
 import { Navbar } from "@/components/Navbar";
+import { LanguageIcon } from "@/components/LanguageIcon";
 import { PageTransition } from "@/components/PageTransition";
 
 export const Route = createFileRoute("/_authenticated/nova-trilha")({
@@ -182,8 +183,9 @@ function NovaTrilha() {
                         key={s}
                         type="button"
                         onClick={() => setLinguagem(s)}
-                        className="border border-border px-3 py-1 text-xs text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+                        className="inline-flex items-center gap-1.5 border border-border px-3 py-1 text-xs text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
                       >
+                        <LanguageIcon language={s} />
                         {s}
                       </button>
                     ))}

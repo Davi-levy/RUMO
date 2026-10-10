@@ -1,5 +1,13 @@
 @import "tailwindcss" source(none);
 @import "tw-animate-css";
+
+@layer components {
+  .bento {
+    border: 1px solid var(--color-border);
+    padding: 2rem;
+    background: var(--color-card);
+  }
+}
 @plugin "@tailwindcss/typography";
 @source "../src";
 
