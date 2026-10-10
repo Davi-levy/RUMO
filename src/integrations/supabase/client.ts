@@ -24,7 +24,7 @@ function criarClienteSupabase() {
 
 let instancia: ReturnType<typeof criarClienteSupabase> | undefined;
 
-// Uso: import { supabase } from "@/integrations/supabase/client";
+// usa import { supabase } from "@/integrations/supabase/client";
 export const supabase = new Proxy({} as ReturnType<typeof criarClienteSupabase>, {
   get(_, prop, receiver) {
     if (!instancia) instancia = criarClienteSupabase();
