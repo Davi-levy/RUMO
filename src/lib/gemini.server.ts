@@ -79,9 +79,22 @@ export async function gerarJsonGemini<T>(options: {
       const value = options.schema.parse(extrairJson(text));
       options.validar(value);
       return value;
-    } catch {
+    } catch (error) {
       // Uma única nova tentativa para JSON incompleto ou conteúdo inválido.
-      erroAnterior = "JSON incompleto ou conteúdo fora do formato solicitado";
+      const mensagensValidacao = ["conteúdo muito curto", "Seções didáticas ausentes ou fora de ordem.", "Exemplo de código ausente.", "São necessários três exercícios.", "Exercícios repetidos.", "Planeje seis módulos.", "Títulos de módulos repetidos."];
+      erroAnterior = error instanceof z.ZodError
+        ? error.issues.slice(0, 4).map(issue => {
+          // Apenas caminhos conhecidos e regras locais; nunca valores da resposta.
+          const caminho = issue.path.filter(part => typeof part === "number" || /^[a-z_]+$/.test(String(part))).join(".");
+          const regra = issue.code === "custom" && caminho === "exercicios"
+            ? "Gere três exercícios válidos de múltipla escolha: quatro alternativas distintas com IDs a–d, resposta_esperada contendo apenas o ID correto, dica e explicacao preenchidas."
+            : `campo fora das regras (${issue.code})`;
+          return `${caminho || "resposta"}: ${regra}`;
+        }).join("; ")
+        : error instanceof Error && mensagensValidacao.includes(error.message) ? error.message
+        : candidate?.finishReason === "MAX_TOKENS" ? "Resposta truncada: use exemplos mais curtos e devolva o JSON completo dentro do limite de tokens."
+        : "JSON ausente ou incompleto: devolva um objeto JSON válido e fechado.";
+      console.warn("[Gemini] Resposta rejeitada", { tentativa: tentativa + 1, motivo: erroAnterior });
     }
   }
   throw new Error(maxAttempts === 1

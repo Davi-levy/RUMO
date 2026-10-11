@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { gerarJsonGemini, esqueletoJsonSchema, moduloJsonSchema } from "../src/lib/gemini.server";
-import { EsqueletoSchema, ModuloSchema, validarEsqueleto, validarModulo, extrairJson } from "../src/lib/trilha.server";
+import { EsqueletoSchema, ModuloSchema, validarEsqueleto, validarModulo, extrairJson, promptModulo, normalizarSecoes } from "../src/lib/trilha.server";
+import exemplos from "./fixtures/conteudo-react.json";
 
 const originalFetch = globalThis.fetch;
 const originalKey = process.env.GEMINI_API_KEY;
@@ -30,6 +31,37 @@ afterEach(() => {
 });
 
 describe("Gemini no servidor", () => {
+  test("normaliza títulos equivalentes sem alterar código nem aceitar seções ausentes", () => {
+    const original = exemplos[0].modulo;
+    const conteudo = original.conteudo.replace("## Objetivos", "## **1. OBJETIVOS:**")
+      .replace("## Pré-requisitos", "## Pre requisitos").replace("## Prática guiada", "## PRATICA GUIADA");
+    const value = ModuloSchema.parse({ ...original, conteudo });
+    expect(() => validarModulo(value)).not.toThrow();
+    expect(normalizarSecoes("```markdown\n## **OBJETIVOS**\n```\n## **Conceitos**"))
+      .toBe("```markdown\n## **OBJETIVOS**\n```\n## Conceitos");
+    expect(() => validarModulo({ ...value, conteudo: value.conteudo.replace("## Conceitos", "## Outro assunto") })).toThrow("Seções");
+  });
+
+  test("nova tentativa explica a falha nos exercícios e usa múltipla escolha sem relaxar validação", async () => {
+    let calls = 0;
+    const original = exemplos[0].modulo;
+    const args = { linguagem: "Ferramenta de programação", nivel: "iniciante" as const, tituloTrilha: fixture.titulo,
+      tituloModulo: fixture.modulos[0].titulo, resumoModulo: fixture.modulos[0].resumo, posicao: 1, total: 6, plano: fixture };
+    globalThis.fetch = (async (_url, options) => {
+      calls++;
+      if (calls === 2) {
+        const prompt = JSON.parse(options?.body as string).contents[0].parts[0].text;
+        expect(prompt).toContain("exercicios:");
+        expect(prompt).toContain("três exercícios de múltipla escolha e nenhuma previsão");
+        expect(prompt).not.toContain("RESPOSTA_PRIVADA");
+      }
+      return answer(JSON.stringify(calls === 1 ? { ...original, exercicios: [{ tipo: "incorreto", pergunta: "RESPOSTA_PRIVADA" }] } : original));
+    }) as typeof fetch;
+    const value = await gerarJsonGemini({ prompt: error => promptModulo(args, error), schema: ModuloSchema,
+      validar: validarModulo, responseSchema: moduloJsonSchema });
+    expect(value.exercicios).toHaveLength(3);
+    expect(calls).toBe(2);
+  });
   test("usa o modelo Flash-Lite como padrão", async () => {
     delete process.env.GEMINI_MODEL;
     globalThis.fetch = (async url => {

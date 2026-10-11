@@ -56,9 +56,16 @@ export function validarEsqueleto(e: Esqueleto) {
 
 // Unifica os dois títulos finais quando o modelo os separa, sem alterar código.
 export function normalizarSecoes(conteudo: string) {
-  const partes = conteudo.split(/(```[\s\S]*?```)/g);
+  const nomes = ["Objetivos", "Pré-requisitos", "Conceitos", "Exemplo resolvido", "Prática guiada", "Erros comuns e resumo", "Erros comuns", "Resumo"];
+  const chave = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[-–]/g, " ").replace(/\s+/g, " ").trim();
+  const partes = conteudo.replace(/\r\n/g, "\n").split(/(```[\s\S]*?```|~~~[\s\S]*?~~~)/g).map((parte, i) => i % 2 ? parte : parte.replace(
+    /^##[ \t]+(.+?)[ \t]*$/gm, (original, titulo: string) => {
+      const limpo = titulo.replace(/\*\*/g, "").replace(/^\d+[.)][ \t]*/, "").replace(/[ \t]*:$/, "");
+      const nome = nomes.find(nome => chave(nome) === chave(limpo));
+      return nome ? `## ${nome}` : original;
+    }));
   const titulos = partes.filter((_, i) => i % 2 === 0).join("").match(/^##\s+.+$/gm) ?? [];
-  if (titulos.at(-2)?.trim() !== "## Erros comuns" || titulos.at(-1)?.trim() !== "## Resumo") return conteudo;
+  if (titulos.at(-2)?.trim() !== "## Erros comuns" || titulos.at(-1)?.trim() !== "## Resumo") return partes.join("");
   return partes.map((parte, i) => i % 2 ? parte : parte
     .replace(/^## Erros comuns\s*$/gm, "## Erros comuns e resumo")
     .replace(/^## Resumo\s*$/gm, "### Resumo")).join("");
@@ -68,7 +75,7 @@ export const ModuloSchema = z.object({
   conteudo: z.string().min(150).max(16000).transform(normalizarSecoes),
   exercicios: z.array(z.unknown()).transform((values, ctx) => {
     try { return selecionarExercicios(values); }
-    catch { ctx.addIssue({ code: "custom", message: "Exercícios objetivos incompletos." }); return z.NEVER; }
+    catch { ctx.addIssue({ code: "custom", message: "Gere três exercícios válidos de múltipla escolha: quatro alternativas distintas com IDs a–d, resposta_esperada contendo apenas o ID correto, dica e explicacao preenchidas." }); return z.NEVER; }
   }),
 });
 
@@ -105,7 +112,7 @@ Regras:
 
 Responda SOMENTE com JSON válido, sem texto antes ou depois:
 {"conteudo":"...","exercicios":[{"tipo":"multipla_escolha","pergunta":"...","alternativas":[{"id":"a","texto":"..."},{"id":"b","texto":"..."},{"id":"c","texto":"..."},{"id":"d","texto":"..."}],"resposta_esperada":"a","dica":"...","explicacao":"..."}]}${
-    erroAnterior ? `\n\nATENÇÃO: a resposta anterior foi rejeitada (${erroAnterior}). Devolva apenas o JSON completo e fechado.` : ""
+    erroAnterior ? `\n\nATENÇÃO: a resposta anterior foi rejeitada (${erroAnterior}). Corrija os problemas indicados e devolva o módulo completo em JSON fechado. Nesta tentativa, gere três exercícios de múltipla escolha e nenhuma previsão de saída. Preserve todas as seções e a qualidade didática.` : ""
   }`;
 }
 
