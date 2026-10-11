@@ -1,6 +1,12 @@
 @import "tailwindcss" source(none);
 @import "tw-animate-css";
 
+.nova-trilha-background {
+  opacity: 0.35;
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
+}
+
 @layer components {
   .bento {
     border: 1px solid var(--color-border);

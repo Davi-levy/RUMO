@@ -11,6 +11,7 @@ import { executarGeracaoTrilha } from "@/lib/trilha-generation";
 import { Navbar } from "@/components/Navbar";
 import { LanguageIcon } from "@/components/LanguageIcon";
 import { PageTransition } from "@/components/PageTransition";
+import { GlyphMatrix } from "@/components/GlyphMatrix";
 import { LimiteTrilhasPopup } from "@/components/LimiteTrilhasPopup";
 import { MENSAGEM_LIMITE_DIARIO, proximoReinicioDiario } from "@/lib/trilha-limite";
 
@@ -209,7 +210,10 @@ function NovaTrilha() {
   const feitos = passos.filter((p) => p.feito).length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative isolate min-h-screen bg-background">
+      <div aria-hidden="true" className="nova-trilha-background pointer-events-none absolute inset-x-0 top-0 -z-10 h-1/2 overflow-hidden">
+        <GlyphMatrix />
+      </div>
       <Navbar />
       <PageTransition>
         <main className="max-w-2xl mx-auto px-6 pt-32 pb-24">
