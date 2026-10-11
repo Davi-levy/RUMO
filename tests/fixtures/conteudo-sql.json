@@ -1,0 +1,483 @@
+[
+  {
+    "linguagem": "SQL",
+    "nivel": "iniciante",
+    "planejamento": {
+      "titulo": "SQL iniciante",
+      "descricao": "Trilha de referência para revisão de conteúdo",
+      "modulos": [
+        {
+          "titulo": "SELECT e WHERE",
+          "resumo": "Aplicar SELECT e WHERE",
+          "objetivos": [
+            "Consultar colunas específicas",
+            "Filtrar registros com WHERE"
+          ],
+          "pre_requisitos": []
+        },
+        {
+          "titulo": "Ordenação e agrupamento",
+          "resumo": "Aplicar Ordenação e agrupamento",
+          "objetivos": [
+            "Identificar conceitos de Ordenação e agrupamento",
+            "Aplicar Ordenação e agrupamento em exemplos"
+          ],
+          "pre_requisitos": [
+            "SELECT e WHERE"
+          ]
+        },
+        {
+          "titulo": "JOIN e valores NULL",
+          "resumo": "Aplicar JOIN e valores NULL",
+          "objetivos": [
+            "Identificar conceitos de JOIN e valores NULL",
+            "Aplicar JOIN e valores NULL em exemplos"
+          ],
+          "pre_requisitos": [
+            "Ordenação e agrupamento"
+          ]
+        },
+        {
+          "titulo": "Agregações e HAVING",
+          "resumo": "Aplicar Agregações e HAVING",
+          "objetivos": [
+            "Identificar conceitos de Agregações e HAVING",
+            "Aplicar Agregações e HAVING em exemplos"
+          ],
+          "pre_requisitos": [
+            "JOIN e valores NULL"
+          ]
+        },
+        {
+          "titulo": "Transações",
+          "resumo": "Aplicar Transações",
+          "objetivos": [
+            "Identificar conceitos de Transações",
+            "Aplicar Transações em exemplos"
+          ],
+          "pre_requisitos": [
+            "Agregações e HAVING"
+          ]
+        },
+        {
+          "titulo": "Funções de janela e empates",
+          "resumo": "Aplicar Funções de janela e empates",
+          "objetivos": [
+            "Identificar conceitos de Funções de janela e empates",
+            "Aplicar Funções de janela e empates em exemplos"
+          ],
+          "pre_requisitos": [
+            "Transações"
+          ]
+        }
+      ]
+    },
+    "posicao": 1,
+    "modulo": {
+      "conteudo": "## Objetivos\n\n- Consultar colunas específicas\n- Filtrar registros com WHERE\n\n## Pré-requisitos\n\nNenhum conhecimento prévio específico.\n\n## Conceitos\nA linguagem SQL é utilizada para gerenciar bancos de dados relacionais. O comando SELECT é a base de qualquer consulta, permitindo escolher quais colunas queremos visualizar. Para restringir as linhas retornadas com base em condições, utilizamos a cláusula WHERE.\n\nA ordem escrita das cláusulas é SELECT, FROM e WHERE. Conceitualmente, localizamos os registros da tabela, aplicamos a condição e escolhemos os campos desejados. Não é necessário prever aqui a estratégia interna do banco. Sem ORDER BY, a consulta não promete uma ordem específica das linhas. Quando o exercício precisa de uma lista ordenada, esse requisito deve aparecer explicitamente, em vez de depender da ferramenta utilizada.\n\n## Exemplo resolvido\n```sql\nSELECT nome, idade FROM usuarios WHERE idade > 18;\n```\nEste comando retorna o nome e a idade apenas dos usuários cuja idade seja superior a 18 anos.\n\nPara tornar a leitura concreta, imagine usuarios com três linhas: Ana tem 18 anos, Bruno tem 20 e Carla tem 17. A consulta verifica a condição em cada linha e mantém somente Bruno, pois o operador > exclui a igualdade. SELECT nome, idade escolhe quais colunas aparecem no resultado; essa escolha não modifica os registros armazenados. Consultar e alterar dados são tarefas diferentes.\n\n## Prática guiada\nTente criar uma consulta para selecionar o produto e o preço da tabela produtos onde o preço seja menor que 50.\n\nNa prática guiada, considere produtos com nome e preco: Livro custa 35, Teclado custa 80 e Cabo custa 20. Determine primeiro quais preços atendem a menor que 50, depois selecione as duas colunas. Compare preço igual a 50 para entender o limite. Use números sem aspas quando representam valores numéricos e mantenha a grafia real das colunas. O resultado é tabular, por isso os exercícios deste caso usam alternativas, não saída textual exata.\n\n## Erros comuns e resumo\nEsquecer de colocar o nome da tabela após o FROM ou usar aspas simples incorretamente em valores textuais.\n\n### Resumo\nAprendeu-se a extrair dados específicos usando SELECT e filtrar resultados com WHERE.",
+      "exercicios": [
+        {
+          "pergunta": "Qual cláusula é utilizada para filtrar linhas em uma consulta SQL?",
+          "dica": "Pense em qual palavra significa 'onde' em inglês.",
+          "explicacao": "A cláusula WHERE é usada para filtrar registros que atendem a uma condição específica.",
+          "tipo": "multipla_escolha",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "SELECT"
+            },
+            {
+              "id": "b",
+              "texto": "WHERE"
+            },
+            {
+              "id": "c",
+              "texto": "FROM"
+            },
+            {
+              "id": "d",
+              "texto": "ORDER BY"
+            }
+          ],
+          "resposta_esperada": "b"
+        },
+        {
+          "pergunta": "Qual comando básico seleciona todos os dados de uma tabela chamada 'clientes'?",
+          "dica": "O asterisco representa todas as colunas.",
+          "explicacao": "SELECT * FROM clientes seleciona todas as colunas e linhas da tabela.",
+          "tipo": "multipla_escolha",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "GET * FROM clientes"
+            },
+            {
+              "id": "b",
+              "texto": "SHOW clientes"
+            },
+            {
+              "id": "c",
+              "texto": "SELECT * FROM clientes"
+            },
+            {
+              "id": "d",
+              "texto": "FROM clientes SELECT *"
+            }
+          ],
+          "resposta_esperada": "c"
+        },
+        {
+          "tipo": "multipla_escolha",
+          "pergunta": "A tabela usuarios tem (nome, idade): (Ana, 18), (Bruno, 20), (Carla, 17). Quais nomes satisfazem SELECT nome FROM usuarios WHERE idade > 18?",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "Ana e Bruno"
+            },
+            {
+              "id": "b",
+              "texto": "Bruno"
+            },
+            {
+              "id": "c",
+              "texto": "Carla"
+            },
+            {
+              "id": "d",
+              "texto": "Ana, Bruno e Carla"
+            }
+          ],
+          "resposta_esperada": "b",
+          "dica": "A condição usa maior, não maior ou igual.",
+          "explicacao": "Apenas Bruno tem idade estritamente maior que 18. Ana tem 18 e Carla tem 17."
+        }
+      ]
+    },
+    "revisao": {
+      "origem": "Gemini com revisão manual; exemplos de regressão, não gabaritos de trilhas de usuários",
+      "palavras": 353
+    }
+  },
+  {
+    "linguagem": "SQL",
+    "nivel": "intermediario",
+    "planejamento": {
+      "titulo": "SQL intermediario",
+      "descricao": "Trilha de referência para revisão de conteúdo",
+      "modulos": [
+        {
+          "titulo": "SELECT e WHERE",
+          "resumo": "Aplicar SELECT e WHERE",
+          "objetivos": [
+            "Identificar conceitos de SELECT e WHERE",
+            "Aplicar SELECT e WHERE em exemplos"
+          ],
+          "pre_requisitos": [
+            "Conhecimento básico de SQL"
+          ]
+        },
+        {
+          "titulo": "Ordenação e agrupamento",
+          "resumo": "Aplicar Ordenação e agrupamento",
+          "objetivos": [
+            "Identificar conceitos de Ordenação e agrupamento",
+            "Aplicar Ordenação e agrupamento em exemplos"
+          ],
+          "pre_requisitos": [
+            "SELECT e WHERE"
+          ]
+        },
+        {
+          "titulo": "JOIN e valores NULL",
+          "resumo": "Aplicar JOIN e valores NULL",
+          "objetivos": [
+            "Distinguir JOIN e LEFT JOIN",
+            "Tratar valores NULL em relacionamentos"
+          ],
+          "pre_requisitos": [
+            "Ordenação e agrupamento"
+          ]
+        },
+        {
+          "titulo": "Agregações e HAVING",
+          "resumo": "Aplicar Agregações e HAVING",
+          "objetivos": [
+            "Identificar conceitos de Agregações e HAVING",
+            "Aplicar Agregações e HAVING em exemplos"
+          ],
+          "pre_requisitos": [
+            "JOIN e valores NULL"
+          ]
+        },
+        {
+          "titulo": "Transações",
+          "resumo": "Aplicar Transações",
+          "objetivos": [
+            "Identificar conceitos de Transações",
+            "Aplicar Transações em exemplos"
+          ],
+          "pre_requisitos": [
+            "Agregações e HAVING"
+          ]
+        },
+        {
+          "titulo": "Funções de janela e empates",
+          "resumo": "Aplicar Funções de janela e empates",
+          "objetivos": [
+            "Identificar conceitos de Funções de janela e empates",
+            "Aplicar Funções de janela e empates em exemplos"
+          ],
+          "pre_requisitos": [
+            "Transações"
+          ]
+        }
+      ]
+    },
+    "posicao": 3,
+    "modulo": {
+      "conteudo": "## Objetivos\n\n- Distinguir JOIN e LEFT JOIN\n- Tratar valores NULL em relacionamentos\n\n## Pré-requisitos\n\n- Ordenação e agrupamento\n\n## Conceitos\nOs comandos JOIN permitem combinar dados de duas ou mais tabelas com base em uma coluna em comum. O INNER JOIN retorna apenas os registros que possuem correspondência em ambas as tabelas, enquanto o LEFT JOIN retorna todos os registros da tabela esquerda, mesmo que não haja correspondência, gerando valores NULL.\n\nUm bug frequente aparece quando filtramos uma coluna da direita no WHERE e eliminamos os NULL produzidos pelo LEFT JOIN. Se precisamos preservar todos os clientes e associar somente pedidos de certo status, avalie colocar essa condição no ON. O local do filtro muda o significado da consulta. NULL representa ausência de valor conhecido; comparar com = NULL não testa essa ausência. Use IS NULL ou IS NOT NULL conforme o objetivo.\n\n## Exemplo resolvido\n```sql\nSELECT clientes.nome, pedidos.id FROM clientes LEFT JOIN pedidos ON clientes.id = pedidos.cliente_id;\n```\nEste comando lista todos os clientes e os IDs de seus pedidos, exibindo NULL caso o cliente não tenha feito nenhum pedido.\n\nConsidere clientes com IDs 1 e 2 e um único pedido com ID 10 e cliente_id 1. O LEFT JOIN preserva os dois clientes: o primeiro encontra um pedido, e o segundo recebe NULL nas colunas de pedidos. Se houvesse dois pedidos para o cliente 1, ele apareceria duas vezes. JOIN não elimina duplicidades automaticamente; a quantidade de correspondências influencia a quantidade de linhas do resultado.\n\n## Prática guiada\nEscreva uma consulta usando LEFT JOIN para listar todos os produtos e suas categorias, mesmo os que não possuem categoria associada.\n\nNa prática guiada, declare quais campos relacionam produtos e categorias antes de escrever a consulta. Inclua um produto sem categoria nos dados de exemplo e trace a linha correspondente. Para procurar clientes sem pedidos, teste uma chave não nula da tabela pedidos depois da junção; assim NULL indica falta de correspondência, sem confundir uma descrição opcional ausente. Compare o resultado com INNER JOIN para explicar quais linhas seriam perdidas.\n\n## Erros comuns e resumo\nConfundir a ordem das tabelas em um LEFT JOIN, alterando qual lado preserva os registros sem correspondência.\n\n### Resumo\nVimos como unir tabelas relacionais e lidar com a presença de valores nulos.",
+      "exercicios": [
+        {
+          "pergunta": "Qual tipo de JOIN retorna todos os registros da tabela à esquerda, independentemente de haver correspondência na tabela à direita?",
+          "dica": "O nome do comando inclui a palavra 'esquerda' em inglês.",
+          "explicacao": "O LEFT JOIN preserva todos os registros da tabela da esquerda.",
+          "tipo": "multipla_escolha",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "LEFT JOIN"
+            },
+            {
+              "id": "b",
+              "texto": "INNER JOIN"
+            },
+            {
+              "id": "c",
+              "texto": "CROSS JOIN"
+            },
+            {
+              "id": "d",
+              "texto": "SELF JOIN"
+            }
+          ],
+          "resposta_esperada": "a"
+        },
+        {
+          "pergunta": "Como podemos filtrar resultados onde uma coluna possui valores nulos?",
+          "dica": "Não se usa o operador de igualdade (=) com NULL.",
+          "explicacao": "Utiliza-se IS NULL para verificar a ausência de valor.",
+          "tipo": "multipla_escolha",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "WHERE coluna = NULL"
+            },
+            {
+              "id": "b",
+              "texto": "WHERE coluna == NULL"
+            },
+            {
+              "id": "c",
+              "texto": "WHERE IS NULL(coluna)"
+            },
+            {
+              "id": "d",
+              "texto": "WHERE coluna IS NULL"
+            }
+          ],
+          "resposta_esperada": "d"
+        },
+        {
+          "tipo": "multipla_escolha",
+          "pergunta": "Clientes: IDs 1 e 2. Pedidos: um registro (id 10, cliente_id 1). Após LEFT JOIN de clientes com pedidos por cliente_id, como encontrar o cliente sem pedido?",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "Filtrar WHERE pedidos.id IS NULL."
+            },
+            {
+              "id": "b",
+              "texto": "Filtrar WHERE pedidos.id = NULL."
+            },
+            {
+              "id": "c",
+              "texto": "Trocar LEFT JOIN por INNER JOIN."
+            },
+            {
+              "id": "d",
+              "texto": "Filtrar WHERE clientes.id IS NULL."
+            }
+          ],
+          "resposta_esperada": "a",
+          "dica": "Verifique uma coluna não nula da tabela à direita.",
+          "explicacao": "O cliente 2 é preservado pelo LEFT JOIN e seus campos de pedidos ficam NULL. IS NULL encontra essa ausência; = NULL não produz uma condição verdadeira."
+        }
+      ]
+    },
+    "revisao": {
+      "origem": "Gemini com revisão manual; exemplos de regressão, não gabaritos de trilhas de usuários",
+      "palavras": 380
+    }
+  },
+  {
+    "linguagem": "SQL",
+    "nivel": "avancado",
+    "planejamento": {
+      "titulo": "SQL avancado",
+      "descricao": "Trilha de referência para revisão de conteúdo",
+      "modulos": [
+        {
+          "titulo": "SELECT e WHERE",
+          "resumo": "Aplicar SELECT e WHERE",
+          "objetivos": [
+            "Identificar conceitos de SELECT e WHERE",
+            "Aplicar SELECT e WHERE em exemplos"
+          ],
+          "pre_requisitos": [
+            "Conhecimento básico de SQL"
+          ]
+        },
+        {
+          "titulo": "Ordenação e agrupamento",
+          "resumo": "Aplicar Ordenação e agrupamento",
+          "objetivos": [
+            "Identificar conceitos de Ordenação e agrupamento",
+            "Aplicar Ordenação e agrupamento em exemplos"
+          ],
+          "pre_requisitos": [
+            "SELECT e WHERE"
+          ]
+        },
+        {
+          "titulo": "JOIN e valores NULL",
+          "resumo": "Aplicar JOIN e valores NULL",
+          "objetivos": [
+            "Identificar conceitos de JOIN e valores NULL",
+            "Aplicar JOIN e valores NULL em exemplos"
+          ],
+          "pre_requisitos": [
+            "Ordenação e agrupamento"
+          ]
+        },
+        {
+          "titulo": "Agregações e HAVING",
+          "resumo": "Aplicar Agregações e HAVING",
+          "objetivos": [
+            "Identificar conceitos de Agregações e HAVING",
+            "Aplicar Agregações e HAVING em exemplos"
+          ],
+          "pre_requisitos": [
+            "JOIN e valores NULL"
+          ]
+        },
+        {
+          "titulo": "Transações",
+          "resumo": "Aplicar Transações",
+          "objetivos": [
+            "Identificar conceitos de Transações",
+            "Aplicar Transações em exemplos"
+          ],
+          "pre_requisitos": [
+            "Agregações e HAVING"
+          ]
+        },
+        {
+          "titulo": "Funções de janela e empates",
+          "resumo": "Aplicar Funções de janela e empates",
+          "objetivos": [
+            "Distinguir ROW_NUMBER e RANK",
+            "Definir ordenação e desempate determinísticos"
+          ],
+          "pre_requisitos": [
+            "Transações"
+          ]
+        }
+      ]
+    },
+    "posicao": 6,
+    "modulo": {
+      "conteudo": "## Objetivos\n\n- Distinguir ROW_NUMBER e RANK\n- Definir ordenação e desempate determinísticos\n\n## Pré-requisitos\n\n- Transações\n\n## Conceitos\nFunções de janela (window functions) realizam cálculos em um conjunto de linhas relacionadas à linha atual. Funções como ROW_NUMBER e RANK são essenciais para paginação e ranking, mas lidam com empates de formas distintas. ROW_NUMBER atribui números sequenciais únicos, enquanto RANK atribui a mesma posição para valores iguais, deixando lacunas na numeração.\n\nA escolha do desempate depende do objetivo. Para preservar um empate competitivo no ranking, não acrescente um ID único ao ORDER BY do próprio RANK, pois isso transforma os pares em grupos diferentes. Para escolher uma única primeira venda por funcionário, ROW_NUMBER com partição por funcionário e ordenação por data e ID atende ao contrato. Critérios secundários só garantem unicidade quando realmente diferenciam todas as linhas empatadas.\n\n## Exemplo resolvido\n```sql\nSELECT nome, pontuacao, RANK() OVER (ORDER BY pontuacao DESC) as posicao FROM jogadores;\n```\nEste comando atribui uma classificação aos jogadores com base na pontuação, permitindo empates.\n\nPara pontos 100, 100 e 90, RANK com ordem decrescente atribui posições 1, 1 e 3. As posições empatadas ocupam duas linhas antes do próximo valor. ROW_NUMBER atribui números distintos a todas as linhas, mas uma ordem apenas por pontos não determina qual dos jogadores empatados recebe o primeiro número. A ordem do resultado final também exige ORDER BY externo se sua apresentação precisa ser estável.\n\n## Prática guiada\nImplemente uma consulta usando ROW_NUMBER para obter a primeira venda de cada funcionário, garantindo desempate por ID da venda.\n\nNa prática guiada, defina vendas com funcionario_id, data e id único. Calcule ROW_NUMBER em uma consulta interna, particionando por funcionário e ordenando por data e id. Na consulta externa, mantenha apenas posição 1. Inclua duas vendas na mesma data para conferir o desempate e um segundo funcionário para conferir a partição. Compare essa solução com RANK por data: empates podem produzir mais de uma linha, contrariando a exigência de exatamente uma.\n\n## Erros comuns e resumo\nEsquecer de especificar uma cláusula de desempate na ordenação, gerando resultados não determinísticos em caso de empates.\n\n### Resumo\nExploramos funções de janela avançadas e o tratamento determinístico de empates.",
+      "exercicios": [
+        {
+          "pergunta": "Qual a principal diferença entre ROW_NUMBER() e RANK()?",
+          "dica": "Pense em como cada uma lida com valores duplicados na ordenação.",
+          "explicacao": "ROW_NUMBER gera números únicos mesmo com valores iguais, enquanto RANK atribui a mesma classificação para empates.",
+          "tipo": "multipla_escolha",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "ROW_NUMBER aceita partição e RANK não."
+            },
+            {
+              "id": "b",
+              "texto": "ROW_NUMBER atribui valores sequenciais exclusivos, enquanto RANK atribui o mesmo valor para empates."
+            },
+            {
+              "id": "c",
+              "texto": "RANK é mais rápido que ROW_NUMBER em grandes bases."
+            },
+            {
+              "id": "d",
+              "texto": "Não há diferença prática entre ambas."
+            }
+          ],
+          "resposta_esperada": "b"
+        },
+        {
+          "tipo": "multipla_escolha",
+          "pergunta": "Duas vendas do mesmo funcionário têm a mesma data. Cada venda tem um id único. Queremos escolher exatamente a primeira venda de cada funcionário de forma determinística. Qual janela é adequada?",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "ROW_NUMBER() OVER (PARTITION BY funcionario_id ORDER BY data, id)"
+            },
+            {
+              "id": "b",
+              "texto": "RANK() OVER (PARTITION BY funcionario_id ORDER BY data)"
+            },
+            {
+              "id": "c",
+              "texto": "ROW_NUMBER() OVER (ORDER BY data)"
+            },
+            {
+              "id": "d",
+              "texto": "RANK() OVER (ORDER BY funcionario_id)"
+            }
+          ],
+          "resposta_esperada": "a",
+          "dica": "Particione por funcionário e desempate com uma coluna única.",
+          "explicacao": "A partição separa funcionários. ORDER BY data, id resolve os empates e ROW_NUMBER atribui uma posição única; filtramos posição 1 em uma consulta externa."
+        },
+        {
+          "tipo": "multipla_escolha",
+          "pergunta": "Para pontos 100, 100 e 90, qual sequência de RANK() OVER (ORDER BY pontos DESC) corresponde a esses valores?",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "1, 2, 3"
+            },
+            {
+              "id": "b",
+              "texto": "1, 1, 2"
+            },
+            {
+              "id": "c",
+              "texto": "1, 1, 3"
+            },
+            {
+              "id": "d",
+              "texto": "3, 2, 1"
+            }
+          ],
+          "resposta_esperada": "c",
+          "dica": "O empate ocupa duas posições antes do próximo grupo.",
+          "explicacao": "Os dois valores 100 compartilham a posição 1. Como dois registros os precedem, o valor 90 recebe posição 3."
+        }
+      ]
+    },
+    "revisao": {
+      "origem": "Gemini com revisão manual; exemplos de regressão, não gabaritos de trilhas de usuários",
+      "palavras": 363
+    }
+  }
+]

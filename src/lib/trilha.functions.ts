@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { NIVEIS } from "./trilha.shared";
 import type { ModuloGerado } from "./trilha.server";
-import { ModuloSchema, promptModulo, validarModulo } from "./trilha.server";
+import { ModuloSchema, promptModulo, validarModulo, incluirObjetivosPlanejados } from "./trilha.server";
 import { gerarJsonGemini, moduloJsonSchema } from "./gemini.server";
 import { reservarModulo } from "./trilha-quota.server";
 import { consultarLimites, planejarTrilha, POLITICA_PROGRAMACAO } from "./trilha-planejamento.server";
@@ -34,13 +34,15 @@ export const gerarModulo = createServerFn({ method: "POST" })
     const modulo = aprovado.plano.modulos[data.posicao - 1];
     if (!modulo) throw new Error("Módulo ausente no plano aprovado.");
     await reservarModulo(context.supabase, data.geracaoId, data.posicao);
-    return gerarJsonGemini({
+    const resultado = await gerarJsonGemini({
       systemInstruction: POLITICA_PROGRAMACAO,
       prompt: erro => promptModulo({
         linguagem: aprovado.linguagem, nivel: aprovado.nivel,
         tituloTrilha: aprovado.plano.titulo, tituloModulo: modulo.titulo,
         resumoModulo: modulo.resumo, posicao: data.posicao, total: aprovado.plano.modulos.length,
+        plano: aprovado.plano,
       }, erro),
       schema: ModuloSchema, validar: validarModulo, responseSchema: moduloJsonSchema,
     });
+    return { ...resultado, conteudo: incluirObjetivosPlanejados(resultado.conteudo, modulo) };
   });

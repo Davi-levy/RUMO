@@ -10,7 +10,7 @@ const originalFetch = globalThis.fetch;
 const usuarioId = "11111111-1111-4111-8111-111111111111";
 const geracaoId = "22222222-2222-4222-8222-222222222222";
 const tema = { linguagem: "Python para finanças", nivel: "iniciante" as const };
-const plano = { titulo: "Python para analisar dados", descricao: "Programação aplicada", modulos: Array.from({ length: 6 }, (_, i) => ({ titulo: `Módulo ${i + 1}`, resumo: "Exemplos de código" })) };
+const plano = { titulo: "Python para analisar dados", descricao: "Programação aplicada", modulos: Array.from({ length: 6 }, (_, i) => ({ titulo: `Módulo ${i + 1}`, resumo: "Exemplos de código", objetivos: ["Identificar conceitos", "Aplicar conceitos"], pre_requisitos: [] })) };
 
 beforeEach(() => {
   process.env.TRILHA_GENERATION_SECRET = "segredo-para-testes-nao-usar-em-producao";

@@ -3,7 +3,11 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { corrigir, type Correcao } from "@/lib/correcao";
+import { corrigir, corrigirObjetivo, type Correcao } from "@/lib/correcao";
+import { AlternativaSchema, type Alternativa, type TipoExercicio } from "@/lib/exercicios";
+import { z } from "zod";
+import { Markdown } from "@/components/Markdown";
+import { ReportarExercicio } from "@/components/ReportarExercicio";
 import { Navbar } from "@/components/Navbar";
 import { PageTransition } from "@/components/PageTransition";
 
@@ -18,6 +22,8 @@ interface Ex {
   dica: string | null;
   explicacao: string | null;
   modulo_id: string;
+  tipo: TipoExercicio;
+  alternativas: Alternativa[] | null;
 }
 
 function ExercicioPage() {
@@ -30,15 +36,27 @@ function ExercicioPage() {
   const [mostrarDica, setMostrarDica] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [carregando, setCarregando] = useState(true);
+  const [mostrarSolucao, setMostrarSolucao] = useState(false);
 
   useEffect(() => {
+    let ativo = true;
+    setCarregando(true);
+    setEx(null);
+    setResposta("");
+    setCorrecao(null);
+    setMostrarDica(false);
+    setMostrarSolucao(false);
     (async () => {
-      const { data } = await supabase
+      try {
+      const { data, error } = await supabase
         .from("exercicios")
-        .select("id, pergunta, resposta_esperada, dica, explicacao, modulo_id")
+        .select("id, pergunta, resposta_esperada, dica, explicacao, modulo_id, tipo, alternativas")
         .eq("id", id)
         .maybeSingle();
-      setEx(data ?? null);
+      if (!ativo) return;
+      if (error) throw error;
+      const alternativas = z.array(AlternativaSchema).length(4).safeParse(data?.alternativas);
+      setEx(data ? { ...data, alternativas: alternativas.success ? alternativas.data : null } : null);
 
       if (data) {
         const { data: mod } = await supabase
@@ -46,6 +64,7 @@ function ExercicioPage() {
           .select("trilha_id")
           .eq("id", data.modulo_id)
           .maybeSingle();
+        if (!ativo) return;
         setTrilhaId(mod?.trilha_id ?? null);
 
         const { data: anterior } = await supabase
@@ -53,28 +72,32 @@ function ExercicioPage() {
           .select("resposta, acertou, feedback")
           .eq("exercicio_id", id)
           .maybeSingle();
+        if (!ativo) return;
         if (anterior) {
           setResposta(anterior.resposta);
           setCorrecao({
             resultado: anterior.acertou ? "acertou" : "errou",
             acertou: anterior.acertou,
             score: anterior.acertou ? 1 : 0,
-            feedback: anterior.feedback ?? "",
+            feedback: data.tipo === "legado" ? anterior.feedback ?? "" : corrigirObjetivo(anterior.resposta, { tipo: data.tipo, resposta_esperada: data.resposta_esperada, dica: data.dica, explicacao: data.explicacao }).feedback,
           });
         }
       }
-      setCarregando(false);
+      } catch { if (ativo) toast.error("Não foi possível carregar o exercício."); }
+      finally { if (ativo) setCarregando(false); }
     })();
+    return () => { ativo = false; };
   }, [id]);
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
-    if (!ex || !resposta.trim()) return;
+    if (!ex || !resposta.trim() || enviando || (ex.tipo === "multipla_escolha" && !ex.alternativas)) return;
     setEnviando(true);
-
-    const res = corrigir(resposta, ex.resposta_esperada, ex.explicacao);
+    setMostrarSolucao(false);
+    const res = ex.tipo === "legado" ? corrigir(resposta, ex.resposta_esperada, ex.explicacao)
+      : corrigirObjetivo(resposta, { ...ex, tipo: ex.tipo });
     setCorrecao(res);
-
+    try {
     const { data: user } = await supabase.auth.getUser();
     if (user.user) {
       const { error } = await supabase.from("respostas").upsert(
@@ -88,8 +111,9 @@ function ExercicioPage() {
         { onConflict: "usuario_id,exercicio_id" },
       );
       if (error) toast.error("Não foi possível salvar seu progresso.");
-    }
-    setEnviando(false);
+    } else toast.error("Sessão expirada. Não foi possível salvar seu progresso.");
+    } catch { toast.error("Não foi possível salvar seu progresso."); }
+    finally { setEnviando(false); }
   }
 
   return (
@@ -115,7 +139,8 @@ function ExercicioPage() {
           ) : (
             <>
               <p className="mt-10 text-xs uppercase tracking-widest text-muted-foreground">Exercício</p>
-              <h1 className="mt-4 font-display text-2xl font-bold leading-snug">{ex.pergunta}</h1>
+              <h1 className="mt-4 font-display text-2xl font-bold leading-snug">{ex.tipo === "legado" ? ex.pergunta : ex.tipo === "multipla_escolha" ? "Escolha a alternativa correta" : "Preveja a saída do código"}</h1>
+              {ex.tipo !== "legado" && <div className="mt-6"><Markdown>{ex.pergunta}</Markdown></div>}
 
               {ex.dica && (
                 <div className="mt-6">
@@ -133,16 +158,30 @@ function ExercicioPage() {
               )}
 
               <form onSubmit={enviar} className="mt-10">
+                {ex.tipo === "multipla_escolha" ? ex.alternativas ? (
+                  <fieldset className="space-y-3">
+                    <legend className="sr-only">Alternativas</legend>
+                    {ex.alternativas.map((alternativa, i) => <label key={alternativa.id} className={`flex cursor-pointer items-start gap-3 border px-4 py-3 text-sm transition-colors ${resposta === alternativa.id ? "border-foreground" : "border-border hover:border-foreground"}`}>
+                      <input type="radio" name="alternativa" value={alternativa.id} checked={resposta === alternativa.id} onChange={() => setResposta(alternativa.id)} disabled={enviando} className="mt-1 accent-white" />
+                      <span className="text-muted-foreground">{String.fromCharCode(65 + i)}.</span>
+                      <span className="min-w-0 flex-1 whitespace-pre-wrap break-words">{alternativa.texto}</span>
+                    </label>)}
+                  </fieldset>
+                ) : <p role="alert" className="text-sm text-muted-foreground">As alternativas estão incompletas. Você pode reportar este exercício abaixo.</p> : <>
+                <label htmlFor="exercicio-resposta" className="sr-only">{ex.tipo === "previsao_saida" ? "Saída do código" : "Sua resposta"}</label>
                 <textarea
+                  id="exercicio-resposta"
                   value={resposta}
                   onChange={(e) => setResposta(e.target.value)}
-                  rows={5}
-                  placeholder="Sua resposta..."
+                  rows={ex.tipo === "previsao_saida" ? 2 : 5}
+                  placeholder={ex.tipo === "previsao_saida" ? "Digite a saída exata, preservando letras e símbolos..." : "Sua resposta..."}
                   className="w-full border border-border bg-transparent px-4 py-3 font-display text-sm outline-none focus:border-foreground transition-colors resize-none"
                 />
+                {ex.tipo === "previsao_saida" && <p className="mt-2 text-xs text-muted-foreground">Informe a saída de uma linha. Maiúsculas, símbolos e espaços internos fazem diferença.</p>}
+                </>}
                 <button
                   type="submit"
-                  disabled={enviando || !resposta.trim()}
+                  disabled={enviando || !resposta.trim() || (ex.tipo === "multipla_escolha" && !ex.alternativas)}
                   className="mt-4 bg-primary text-primary-foreground px-8 py-3 text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
                 >
                   {enviando ? "Corrigindo..." : correcao ? "Enviar novamente" : "Enviar resposta"}
@@ -163,6 +202,13 @@ function ExercicioPage() {
                         : "Revise"}
                   </p>
                   <p className="mt-4 text-sm leading-relaxed whitespace-pre-wrap">{correcao.feedback}</p>
+                  {ex.tipo !== "legado" && !correcao.acertou && (
+                    mostrarSolucao ? <div className="mt-6 text-sm">
+                      <p className="font-medium">Solução</p>
+                      <pre className="mt-3 whitespace-pre-wrap break-words font-mono text-sm">{ex.tipo === "multipla_escolha" ? ex.alternativas?.find(a => a.id === ex.resposta_esperada)?.texto ?? "Solução indisponível." : ex.resposta_esperada}</pre>
+                      {ex.explicacao && <p className="mt-3 leading-relaxed whitespace-pre-wrap">{ex.explicacao}</p>}
+                    </div> : <button type="button" onClick={() => setMostrarSolucao(true)} className="mt-6 cursor-pointer text-xs underline underline-offset-4 hover:opacity-70">Ver solução</button>
+                  )}
                   {correcao.acertou && trilhaId && (
                     <Link
                       to="/trilha/$trilhaId"
@@ -174,6 +220,7 @@ function ExercicioPage() {
                   )}
                 </motion.div>
               )}
+              <ReportarExercicio key={ex.id} exercicioId={ex.id} />
             </>
           )}
         </main>

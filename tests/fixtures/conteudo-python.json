@@ -1,0 +1,438 @@
+[
+  {
+    "linguagem": "Python",
+    "nivel": "iniciante",
+    "planejamento": {
+      "titulo": "Python iniciante",
+      "descricao": "Trilha de referência para revisão de conteúdo",
+      "modulos": [
+        {
+          "titulo": "Variáveis e tipos",
+          "resumo": "Aplicar Variáveis e tipos",
+          "objetivos": [
+            "Declarar variáveis e identificar tipos",
+            "Prever a saída de uma expressão simples"
+          ],
+          "pre_requisitos": []
+        },
+        {
+          "titulo": "Condições",
+          "resumo": "Aplicar Condições",
+          "objetivos": [
+            "Identificar conceitos de Condições",
+            "Aplicar Condições em exemplos"
+          ],
+          "pre_requisitos": [
+            "Variáveis e tipos"
+          ]
+        },
+        {
+          "titulo": "Funções e validação",
+          "resumo": "Aplicar Funções e validação",
+          "objetivos": [
+            "Identificar conceitos de Funções e validação",
+            "Aplicar Funções e validação em exemplos"
+          ],
+          "pre_requisitos": [
+            "Condições"
+          ]
+        },
+        {
+          "titulo": "Coleções",
+          "resumo": "Aplicar Coleções",
+          "objetivos": [
+            "Identificar conceitos de Coleções",
+            "Aplicar Coleções em exemplos"
+          ],
+          "pre_requisitos": [
+            "Funções e validação"
+          ]
+        },
+        {
+          "titulo": "Arquivos e erros",
+          "resumo": "Aplicar Arquivos e erros",
+          "objetivos": [
+            "Identificar conceitos de Arquivos e erros",
+            "Aplicar Arquivos e erros em exemplos"
+          ],
+          "pre_requisitos": [
+            "Coleções"
+          ]
+        },
+        {
+          "titulo": "Geradores e avaliação preguiçosa",
+          "resumo": "Aplicar Geradores e avaliação preguiçosa",
+          "objetivos": [
+            "Identificar conceitos de Geradores e avaliação preguiçosa",
+            "Aplicar Geradores e avaliação preguiçosa em exemplos"
+          ],
+          "pre_requisitos": [
+            "Arquivos e erros"
+          ]
+        }
+      ]
+    },
+    "posicao": 1,
+    "modulo": {
+      "conteudo": "## Objetivos\n\n- Declarar variáveis e identificar tipos\n- Prever a saída de uma expressão simples\n\n## Pré-requisitos\n\nNenhum conhecimento prévio específico.\n\n## Conceitos\nNo Python, uma variável é como uma caixa onde você pode guardar um valor. Para criar uma variável, basta dar um nome a ela e usar o sinal de igual (=) para atribuir um valor. Os tipos básicos de dados incluem números inteiros (int), números com ponto flutuante (float), textos (str) e valores lógicos (bool).\n\nPara explorar os tipos, compare 19.99, 19 e \"19\". Embora pareçam semelhantes na tela, representam um número decimal, um inteiro e um texto. Somar dois números produz uma operação aritmética; juntar dois textos combina caracteres. Uma string não vira número apenas por conter algarismos. Não tente misturar tipos desconhecidos: primeiro identifique cada valor e a operação desejada.\n\n## Exemplo resolvido\nAbaixo, criamos variáveis para armazenar a idade de uma pessoa e seu nome:\n\n```python\nnome = \"Maria\"\nidade = 25\nprint(nome)\nprint(idade)\n```\n\nNeste exemplo, `nome` armazena um texto e `idade` armazena um número inteiro. A função `print` exibe esses valores na tela.\n\nFaça a leitura do código de cima para baixo: primeiro Python avalia o texto entre aspas e associa esse objeto ao nome escolhido; depois associa o número inteiro ao outro nome. Só nas chamadas de print ocorre a exibição. Uma atribuição não imprime nada por si mesma. Se houver duas chamadas, haverá duas linhas, na mesma ordem das chamadas. Essa separação ajuda a localizar exatamente onde cada resultado aparece.\n\n## Prática guiada\nPara praticar, crie uma variável chamada `preco` com o valor `19.99` e exiba o seu valor utilizando a função `print`.\n\nNa prática guiada, escreva o nome da variável à esquerda e o valor decimal à direita. Em seguida use print com esse nome, sem aspas, porque queremos consultar a variável. Se imprimir \"preco\", verá o nome escrito literalmente. Depois troque apenas o valor e leia novamente o código, prevendo o que mudou. Esse procedimento permite praticar sem decorar um resultado específico.\n\n## Erros comuns e resumo\nUm erro comum é esquecer de colocar textos entre aspas, o que faz o Python procurar por uma variável com aquele nome e gerar um erro.\n\n### Resumo\nNeste módulo, aprendemos a declarar variáveis e a identificar os principais tipos de dados em Python.",
+      "exercicios": [
+        {
+          "pergunta": "Qual dos seguintes tipos em Python é usado para representar números inteiros?",
+          "dica": "Pense na palavra em inglês para inteiro.",
+          "explicacao": "O tipo int é utilizado para representar números inteiros em Python.",
+          "tipo": "multipla_escolha",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "str"
+            },
+            {
+              "id": "b",
+              "texto": "int"
+            },
+            {
+              "id": "c",
+              "texto": "float"
+            },
+            {
+              "id": "d",
+              "texto": "bool"
+            }
+          ],
+          "resposta_esperada": "b"
+        },
+        {
+          "pergunta": "Como você declara corretamente uma variável de texto chamada mensagem?",
+          "dica": "Textos precisam estar delimitados por aspas.",
+          "explicacao": "Atribuir um valor entre aspas a um identificador cria uma variável do tipo string (str).",
+          "tipo": "multipla_escolha",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "mensagem == \"Olá\""
+            },
+            {
+              "id": "b",
+              "texto": "texto mensagem = Olá"
+            },
+            {
+              "id": "c",
+              "texto": "mensagem = \"Olá\""
+            },
+            {
+              "id": "d",
+              "texto": "\"Olá\" = mensagem"
+            }
+          ],
+          "resposta_esperada": "c"
+        },
+        {
+          "pergunta": "Qual será a saída da execução do código abaixo?\n\n```python\nx = 10\nprint(x)\n```",
+          "dica": "Observe o valor atribuído à variável x.",
+          "explicacao": "A função print exibe o valor armazenado na variável x, que é 10.",
+          "tipo": "previsao_saida",
+          "alternativas": null,
+          "codigo": "x = 10\nprint(x)",
+          "linguagem_codigo": "python",
+          "resposta_esperada": "10"
+        }
+      ]
+    },
+    "revisao": {
+      "origem": "Gemini com revisão manual; exemplos de regressão, não gabaritos de trilhas de usuários",
+      "palavras": 384
+    }
+  },
+  {
+    "linguagem": "Python",
+    "nivel": "intermediario",
+    "planejamento": {
+      "titulo": "Python intermediario",
+      "descricao": "Trilha de referência para revisão de conteúdo",
+      "modulos": [
+        {
+          "titulo": "Variáveis e tipos",
+          "resumo": "Aplicar Variáveis e tipos",
+          "objetivos": [
+            "Identificar conceitos de Variáveis e tipos",
+            "Aplicar Variáveis e tipos em exemplos"
+          ],
+          "pre_requisitos": [
+            "Conhecimento básico de Python"
+          ]
+        },
+        {
+          "titulo": "Condições",
+          "resumo": "Aplicar Condições",
+          "objetivos": [
+            "Identificar conceitos de Condições",
+            "Aplicar Condições em exemplos"
+          ],
+          "pre_requisitos": [
+            "Variáveis e tipos"
+          ]
+        },
+        {
+          "titulo": "Funções e validação",
+          "resumo": "Aplicar Funções e validação",
+          "objetivos": [
+            "Implementar uma função com validação",
+            "Distinguir retorno de saída impressa"
+          ],
+          "pre_requisitos": [
+            "Condições"
+          ]
+        },
+        {
+          "titulo": "Coleções",
+          "resumo": "Aplicar Coleções",
+          "objetivos": [
+            "Identificar conceitos de Coleções",
+            "Aplicar Coleções em exemplos"
+          ],
+          "pre_requisitos": [
+            "Funções e validação"
+          ]
+        },
+        {
+          "titulo": "Arquivos e erros",
+          "resumo": "Aplicar Arquivos e erros",
+          "objetivos": [
+            "Identificar conceitos de Arquivos e erros",
+            "Aplicar Arquivos e erros em exemplos"
+          ],
+          "pre_requisitos": [
+            "Coleções"
+          ]
+        },
+        {
+          "titulo": "Geradores e avaliação preguiçosa",
+          "resumo": "Aplicar Geradores e avaliação preguiçosa",
+          "objetivos": [
+            "Identificar conceitos de Geradores e avaliação preguiçosa",
+            "Aplicar Geradores e avaliação preguiçosa em exemplos"
+          ],
+          "pre_requisitos": [
+            "Arquivos e erros"
+          ]
+        }
+      ]
+    },
+    "posicao": 3,
+    "modulo": {
+      "conteudo": "## Objetivos\n\n- Implementar uma função com validação\n- Distinguir retorno de saída impressa\n\n## Pré-requisitos\n\n- Condições\n\n## Conceitos\nFunções em Python encapsulam blocos de código reutilizáveis usando a palavra-chave def. Validações internas garantem que os argumentos recebidos atendam a critérios específicos antes de processar os dados, utilizando estruturas condicionais. É fundamental distinguir o comando return, que devolve um valor para uso posterior, da função print(), que apenas exibe dados no console.\n\nHá uma escolha de contrato: neste exemplo a função devolve ora texto, ora número. Isso simplifica a demonstração, mas exige cuidado no chamador, que não pode somar uma mensagem com um número. Em aplicações maiores pode-se escolher uma exceção ou um resultado com indicação explícita de sucesso. Antes de mudar a abordagem, descreva quem chama a função e o que esse código espera receber.\n\n## Exemplo resolvido\n```python\ndef dividir(a, b):\n    if b == 0:\n        return \"Erro: Divisão por zero\"\n    return a / b\nprint(dividir(10, 2))\n```\nEste código define uma função com validação para evitar erro matemático e retorna o resultado da divisão.\n\nNa função dividir, a primeira decisão trata o denominador zero antes de qualquer divisão. Quando a condição é verdadeira, return encerra aquela chamada e devolve uma mensagem; a linha com a divisão não é executada. Com 10 e 2, a condição é falsa e a operação devolve 5.0. O print externo exibe esse valor. Separar validação, cálculo e apresentação torna cada responsabilidade visível.\n\n## Prática guiada\nEscreva uma função que receba um número e valide se ele é positivo antes de retornar o seu dobro.\n\nNa prática, defina o que significa positivo: maior que zero, sem incluir o próprio zero. Verifique a condição antes de calcular o dobro. Considere separadamente entradas positivas, zero e negativas; a função precisa responder de maneira coerente em cada caminho. Revise um bug comum: escrever print do resultado sem return mostra algo no console, mas impede reutilizar o valor. Procure o retorno em cada ramificação.\n\n## Erros comuns e resumo\nConfundir print com return, fazendo com que a função retorne None em vez de um valor utilizável.\n\n### Resumo\nAprendemos a estruturar funções robustas combinando validações e compreendendo a diferença entre retornar e exibir dados.",
+      "exercicios": [
+        {
+          "tipo": "multipla_escolha",
+          "pergunta": "Uma função exibe o dobro com print, mas o código chamador recebe None. Qual correção mantém o resultado disponível para outras operações?",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "Substituir print(valor * 2) por return valor * 2."
+            },
+            {
+              "id": "b",
+              "texto": "Adicionar print fora da função sem alterar o retorno."
+            },
+            {
+              "id": "c",
+              "texto": "Trocar def por class."
+            },
+            {
+              "id": "d",
+              "texto": "Remover a validação dos argumentos."
+            }
+          ],
+          "resposta_esperada": "a",
+          "dica": "Observe o que sai da função, não apenas o console.",
+          "explicacao": "Sem return explícito, a função retorna None. return disponibiliza o dobro ao chamador."
+        },
+        {
+          "pergunta": "Qual é a principal diferença entre print() e return dentro de uma função?",
+          "dica": "Pense em reutilização de dados versus exibição visual.",
+          "explicacao": "O return devolve o valor para ser usado no código, enquanto print apenas exibe na tela.",
+          "tipo": "multipla_escolha",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "Ambos fazem exatamente a mesma coisa."
+            },
+            {
+              "id": "b",
+              "texto": "print armazena o valor na memória e return exibe na tela."
+            },
+            {
+              "id": "c",
+              "texto": "return encerra o programa inteiro."
+            },
+            {
+              "id": "d",
+              "texto": "return devolve um valor utilizável, enquanto print apenas exibe texto no console."
+            }
+          ],
+          "resposta_esperada": "d"
+        },
+        {
+          "pergunta": "Qual é a saída do código abaixo?\n\n```python\ndef somar(a, b):\n    return a + b\nprint(somar(3, 4))\n```",
+          "dica": "Execute a soma dos argumentos passados.",
+          "explicacao": "A função soma 3 e 4, retornando 7 que é impresso na tela.",
+          "tipo": "previsao_saida",
+          "alternativas": null,
+          "codigo": "def somar(a, b):\n    return a + b\nprint(somar(3, 4))",
+          "linguagem_codigo": "python",
+          "resposta_esperada": "7"
+        }
+      ]
+    },
+    "revisao": {
+      "origem": "Gemini com revisão manual; exemplos de regressão, não gabaritos de trilhas de usuários",
+      "palavras": 367
+    }
+  },
+  {
+    "linguagem": "Python",
+    "nivel": "avancado",
+    "planejamento": {
+      "titulo": "Python avancado",
+      "descricao": "Trilha de referência para revisão de conteúdo",
+      "modulos": [
+        {
+          "titulo": "Variáveis e tipos",
+          "resumo": "Aplicar Variáveis e tipos",
+          "objetivos": [
+            "Identificar conceitos de Variáveis e tipos",
+            "Aplicar Variáveis e tipos em exemplos"
+          ],
+          "pre_requisitos": [
+            "Conhecimento básico de Python"
+          ]
+        },
+        {
+          "titulo": "Condições",
+          "resumo": "Aplicar Condições",
+          "objetivos": [
+            "Identificar conceitos de Condições",
+            "Aplicar Condições em exemplos"
+          ],
+          "pre_requisitos": [
+            "Variáveis e tipos"
+          ]
+        },
+        {
+          "titulo": "Funções e validação",
+          "resumo": "Aplicar Funções e validação",
+          "objetivos": [
+            "Identificar conceitos de Funções e validação",
+            "Aplicar Funções e validação em exemplos"
+          ],
+          "pre_requisitos": [
+            "Condições"
+          ]
+        },
+        {
+          "titulo": "Coleções",
+          "resumo": "Aplicar Coleções",
+          "objetivos": [
+            "Identificar conceitos de Coleções",
+            "Aplicar Coleções em exemplos"
+          ],
+          "pre_requisitos": [
+            "Funções e validação"
+          ]
+        },
+        {
+          "titulo": "Arquivos e erros",
+          "resumo": "Aplicar Arquivos e erros",
+          "objetivos": [
+            "Identificar conceitos de Arquivos e erros",
+            "Aplicar Arquivos e erros em exemplos"
+          ],
+          "pre_requisitos": [
+            "Coleções"
+          ]
+        },
+        {
+          "titulo": "Geradores e avaliação preguiçosa",
+          "resumo": "Aplicar Geradores e avaliação preguiçosa",
+          "objetivos": [
+            "Explicar consumo preguiçoso de iteradores",
+            "Identificar exaustão de um gerador"
+          ],
+          "pre_requisitos": [
+            "Arquivos e erros"
+          ]
+        }
+      ]
+    },
+    "posicao": 6,
+    "modulo": {
+      "conteudo": "## Objetivos\n\n- Explicar consumo preguiçoso de iteradores\n- Identificar exaustão de um gerador\n\n## Pré-requisitos\n\n- Arquivos e erros\n\n## Conceitos\nA avaliação preguiçosa (lazy evaluation) em Python é implementada através de geradores (generators) utilizando a palavra-chave yield. Diferente de listas tradicionais que armazenam todos os elementos na memória, geradores produzem itens sob demanda. Isso otimiza o uso de recursos, mas introduz o conceito de exaustão: uma vez consumidos, os itens não podem ser acessados novamente sem reiniciar o gerador.\n\nO ganho de memória depende do processamento seguinte: converter o gerador em list materializa todos os valores e elimina a vantagem de armazenar apenas o necessário. Se precisamos percorrer os dados duas vezes, podemos recriar o gerador quando a fonte permite, guardar os resultados ou escolher outra estrutura. Cada alternativa tem um custo diferente de memória e recomputação. Não descreva geradores como automaticamente melhores em qualquer situação.\n\n## Exemplo resolvido\n```python\ndef gerar_numeros():\n    yield 1\n    yield 2\n\ngen = gerar_numeros()\nprint(next(gen))\nprint(next(gen))\n```\nO código utiliza yield para retornar valores um a um sob demanda usando a função next().\n\nCriar um gerador não executa imediatamente todo o corpo da função. A primeira chamada de next avança até o primeiro yield, devolve aquele valor e suspende a execução. A segunda continua depois desse ponto, alcança o próximo yield e suspende novamente. Quando não há outro valor, next sem valor padrão sinaliza StopIteration. Um laço for trata esse término, por isso percorrer um gerador já esgotado não produz novos itens.\n\n## Prática guiada\nImplemente um gerador que produza os quadrados de números até um limite definido, avaliando seu comportamento sob demanda.\n\nPara a prática guiada, escolha um limite pequeno e finito antes de generalizar. Trace quais quadrados seriam produzidos e quantas vezes o consumidor solicita um item. Compare interromper o laço após dois valores com consumir a sequência inteira. Em seguida tente uma segunda passagem e explique a ausência de resultados. A correção deve distinguir criar uma nova instância do gerador de tentar reiniciar a instância esgotada.\n\n## Erros comuns e resumo\nTentar iterar novamente sobre um gerador esgotado sem recriá-lo.\n\n### Resumo\nExploramos a avaliação preguiçosa com geradores, entendendo a eficiência de memória e o comportamento de exaustão de iteradores.",
+      "exercicios": [
+        {
+          "tipo": "multipla_escolha",
+          "pergunta": "Uma função geradora fornece milhões de registros. Precisamos processar cada registro apenas uma vez e evitar armazenar toda a sequência. Qual abordagem é adequada?",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "Converter o gerador em lista antes do processamento."
+            },
+            {
+              "id": "b",
+              "texto": "Duplicar todos os registros antes de iterar."
+            },
+            {
+              "id": "c",
+              "texto": "Consumir o gerador progressivamente em um laço."
+            },
+            {
+              "id": "d",
+              "texto": "Acessar o último item com índice negativo no gerador."
+            }
+          ],
+          "resposta_esperada": "c",
+          "dica": "Compare consumo sob demanda com materialização.",
+          "explicacao": "A iteração progressiva evita materializar toda a sequência; listas armazenam os itens e geradores não oferecem indexação."
+        },
+        {
+          "pergunta": "O que acontece quando tentamos consumir todos os itens de um gerador pela segunda vez sem reiniciá-lo?",
+          "dica": "Pense no conceito de exaustão de iteradores.",
+          "explicacao": "O gerador fica esgotado (exaurido) e não produz novos valores até ser chamado novamente.",
+          "tipo": "multipla_escolha",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "Os itens são repetidos automaticamente do início."
+            },
+            {
+              "id": "b",
+              "texto": "O gerador está exaurido e nenhum item é retornado."
+            },
+            {
+              "id": "c",
+              "texto": "O programa gera um erro de sintaxe."
+            },
+            {
+              "id": "d",
+              "texto": "A memória RAM é duplicada."
+            }
+          ],
+          "resposta_esperada": "b"
+        },
+        {
+          "pergunta": "Qual é a saída do código abaixo?\n\n```python\ndef meu_gen():\n    yield 5\ngen = meu_gen()\nprint(next(gen))\n```",
+          "dica": "Observe o valor produzido pelo yield.",
+          "explicacao": "A função gera o valor 5 que é capturado e impresso por next().",
+          "tipo": "previsao_saida",
+          "alternativas": null,
+          "codigo": "def meu_gen():\n    yield 5\ngen = meu_gen()\nprint(next(gen))",
+          "linguagem_codigo": "python",
+          "resposta_esperada": "5"
+        }
+      ]
+    },
+    "revisao": {
+      "origem": "Gemini com revisão manual; exemplos de regressão, não gabaritos de trilhas de usuários",
+      "palavras": 370
+    }
+  }
+]

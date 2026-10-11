@@ -55,9 +55,51 @@ describe("Correspondência com o conteúdo da trilha", () => {
     expect(contexto.relevancia("Python tutorial", "")).toBeGreaterThan(0);
     expect(contexto.relevancia("Java tutorial", "")).toBe(0);
   });
+
+  test("títulos didáticos de Rust não exigem a palavra estudos nos vídeos", () => {
+    const contexto = prepararContextoVideos({ linguagem: "Rust", nivel: "iniciante",
+      titulo: "Trilha de Estudos em Rust para Iniciantes", descricao: "Curso do zero",
+      modulos: [{ titulo: "Variáveis e tipos" }, { titulo: "Compreendendo o Ownership" }] });
+    expect(contexto.consulta("pt")).toBe("Rust programação iniciante tutorial");
+    expect(contexto.consulta("en")).toBe("Rust programming beginner tutorial");
+    expect(contexto.relevancia("Curso de Rust para iniciantes", "Variáveis e ownership")).toBeGreaterThan(0);
+    expect(contexto.relevancia("Rust programming tutorial", "")).toBeGreaterThan(0);
+    expect(contexto.relevancia("Minecraft Rust survival", "")).toBe(0);
+    expect(contexto.relevancia("Python para iniciantes", "")).toBe(0);
+  });
+
+  test("busca Claude Code sem confundir com tutoriais do chat Claude", () => {
+    const contexto = prepararContextoVideos({ linguagem: "Claude Code, como usar", nivel: "avancado",
+      titulo: "Dominando o Claude Code para Desenvolvedores Avançados", descricao: null, modulos: [] });
+    expect(contexto.consulta("en")).toBe("Claude Code advanced tutorial");
+    expect(contexto.relevancia("Claude Code advanced tutorial", "")).toBeGreaterThan(0);
+    expect(contexto.relevancia("Claude AI tutorial", "Como conversar com Claude")).toBe(0);
+  });
+
+  test("Go exige contexto de programação e busca Golang, descartando jogo e música", () => {
+    const contexto = prepararContextoVideos({ linguagem: "Go", nivel: "iniciante",
+      titulo: "Trilha de Estudos em Go para Iniciantes", descricao: "Aprenda a linguagem Go", modulos: [] });
+    expect(contexto.consulta("pt")).toBe("Golang programação iniciante tutorial");
+    expect(contexto.consulta("en")).toBe("Golang programming beginner tutorial");
+    for (const [titulo, descricao] of [["Como Jogar GO (Weiqi ou Baduk)", "Aprenda as regras do jogo de tabuleiro"],
+      ["GO! Tutorial PORTUGUÊS - Espelhado/Mirror | CORTIS", "Coreografia e dança"], ["Como jogar Go", "Tutorial para iniciantes"],
+      ["GO tutorial", ""]]) expect(contexto.relevancia(titulo, descricao)).toBe(0);
+    expect(contexto.relevancia("Curso de Golang para iniciantes", "")).toBeGreaterThan(0);
+    expect(contexto.relevancia("Aprenda Go", "Programação: variáveis, funções e goroutines")).toBeGreaterThan(0);
+    expect(contexto.relevancia("Go slices tutorial", "")).toBeGreaterThan(0);
+  });
+
+  test("nomes ambíguos não aceitam vídeos só por conter tutorial", () => {
+    for (const [linguagem, titulo] of [["Rust", "Rust tutorial survival"], ["Java", "Java ilha viagem tutorial"], ["C", "Vitamina C tutorial"]]) {
+      const contexto = prepararContextoVideos({ linguagem, nivel: "iniciante", titulo: linguagem, descricao: null, modulos: [] });
+      expect(contexto.relevancia(titulo, "")).toBe(0);
+      expect(contexto.relevancia(`${linguagem} programming tutorial`, "Variables and functions")).toBeGreaterThan(0);
+    }
+  });
 });
 
-function banco(options: { dono?: boolean; completo?: boolean; cache?: unknown; anterior?: unknown; disputa?: boolean } = {}) {
+function banco(options: { dono?: boolean; completo?: boolean; cache?: unknown; anterior?: unknown; disputa?: boolean;
+  trilha?: { linguagem: string; nivel: string; titulo: string; descricao: string | null } } = {}) {
   let cache = options.cache ?? null;
   let leituras = 0;
   let reservas = 0;
@@ -74,7 +116,7 @@ function banco(options: { dono?: boolean; completo?: boolean; cache?: unknown; a
       insert: (value: Record<string, unknown>) => { operation = "insert"; values = value; return query; },
       update: (value: Record<string, unknown>) => { operation = "update"; values = value; return query; },
       then: (resolve: (value: unknown) => unknown) => {
-        if (table === "trilhas") return Promise.resolve(resolve({ data: options.dono === false ? null : { linguagem: "Python", nivel: "iniciante", titulo: "Python", descricao: null }, error: null }));
+        if (table === "trilhas") return Promise.resolve(resolve({ data: options.dono === false ? null : options.trilha ?? { linguagem: "Python", nivel: "iniciante", titulo: "Python", descricao: null }, error: null }));
         if (table === "modulos") return Promise.resolve(resolve({ data: options.completo === false ? [] : [{ titulo: "Fundamentos" }], error: null }));
         if (operation === "insert") {
           reservas++;
@@ -99,6 +141,29 @@ function banco(options: { dono?: boolean; completo?: boolean; cache?: unknown; a
 
 describe("Economia de buscas por trilha", () => {
   const salvos = [{ id: ids[0], titulo: "Tutorial", canal: "Canal", idioma: "pt", obtidoEm: new Date().toISOString() }];
+  test("Go substitui cache antigo de jogo e música por programação e conserva a nova busca", async () => {
+    process.env.YOUTUBE_API_KEY = "teste";
+    const trilha = { linguagem: "Go", nivel: "iniciante", titulo: "Trilha de Estudos em Go para Iniciantes", descricao: null };
+    const bons = ["abcdefghij5", "abcdefghij6", "abcdefghij7"];
+    const titulos = ["Como Jogar GO (Weiqi ou Baduk)", "GO! Tutorial PORTUGUÊS - Espelhado/Mirror | CORTIS", "Como jogar Go",
+      "Curso de Golang para iniciantes", "Go: variáveis e funções", "Go: criando uma API HTTP"];
+    const candidatos = [...ids.slice(0, 3), ...bons];
+    const responses = [search(candidatos), json({ items: candidatos.map((id, i) => ({ ...video(id),
+      snippet: { ...video(id).snippet, title: titulos[i], description: i < 3 ? "Tutorial para iniciantes" : "Programação em Go" } })) })];
+    let calls = 0;
+    globalThis.fetch = (async input => {
+      calls++;
+      const url = new URL(String(input));
+      if (url.pathname.endsWith("/search")) expect(url.searchParams.get("q")).toContain("Golang programação");
+      return responses.shift()!;
+    }) as typeof fetch;
+    const db = banco({ trilha, cache: { contexto: "busca-v3", estado: "pronto", videos: salvos, criado_em: new Date().toISOString() } });
+    const resultado = await carregarRecomendacoes(db.client, "trilha");
+    expect(resultado.videos.map(v => v.id)).toEqual(bons);
+    expect((await carregarRecomendacoes(db.client, "trilha")).videos).toEqual(resultado.videos);
+    expect(calls).toBe(2);
+    expect(db.reservas()).toBe(1);
+  });
   test("ignora o cache da busca antiga e salva novas recomendações sem repetir a busca na próxima visita", async () => {
     process.env.YOUTUBE_API_KEY = "teste";
     let calls = 0;

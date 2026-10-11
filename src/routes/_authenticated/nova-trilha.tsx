@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { consultarLimiteDiario, gerarEsqueleto, gerarModulo } from "@/lib/trilha.functions";
 import { MENSAGEM_LIMITE_AVALIACOES, MENSAGEM_TEMA_RECUSADO, NIVEIS, type Nivel } from "@/lib/trilha.shared";
 import { executarGeracaoTrilha } from "@/lib/trilha-generation";
+import { embaralharAlternativas } from "@/lib/exercicios";
 import { Navbar } from "@/components/Navbar";
 import { LanguageIcon } from "@/components/LanguageIcon";
 import { PageTransition } from "@/components/PageTransition";
@@ -153,6 +154,8 @@ function NovaTrilha() {
               signal.throwIfAborted();
               const { error: errEx } = await supabase.from("exercicios").insert(
                 item.gerado.exercicios.map((ex, j) => ({
+                  tipo: ex.tipo,
+                  alternativas: ex.tipo === "multipla_escolha" ? embaralharAlternativas(ex.alternativas) : null,
                   modulo_id: modulo.id, pergunta: ex.pergunta, resposta_esperada: ex.resposta_esperada,
                   dica: ex.dica ?? null, explicacao: ex.explicacao ?? null, ordem: j,
                 })),

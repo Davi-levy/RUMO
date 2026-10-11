@@ -13,7 +13,7 @@ const ResponseSchema = z.object({
 
 export async function gerarJsonGemini<T>(options: {
   prompt: (erroAnterior?: string) => string;
-  schema: z.ZodType<T>;
+  schema: z.ZodType<T, z.ZodTypeDef, unknown>;
   validar: (value: T) => void;
   responseSchema: Record<string, unknown>;
   systemInstruction?: string;
@@ -90,12 +90,18 @@ export async function gerarJsonGemini<T>(options: {
 }
 
 const string = { type: "string" };
+const alternativaJsonSchema = { type: "object", properties: { id: { type: "string", enum: ["a", "b", "c", "d"] }, texto: string }, required: ["id", "texto"] };
+const exercicioBase = { pergunta: string, resposta_esperada: string, dica: string, explicacao: string };
+const exercicioRequired = ["tipo", "pergunta", "resposta_esperada", "dica", "explicacao", "alternativas"];
 export const esqueletoJsonSchema = {
   type: "object",
   properties: {
     titulo: string, descricao: string,
     modulos: { type: "array", minItems: 6, maxItems: 6, items: {
-      type: "object", properties: { titulo: string, resumo: string }, required: ["titulo", "resumo"],
+      type: "object", properties: { titulo: string, resumo: string,
+        objetivos: { type: "array", minItems: 2, maxItems: 3, items: string },
+        pre_requisitos: { type: "array", maxItems: 6, items: string },
+      }, required: ["titulo", "resumo", "objetivos", "pre_requisitos"],
     } },
   },
   required: ["titulo", "descricao", "modulos"],
@@ -104,13 +110,13 @@ export const esqueletoJsonSchema = {
 export const moduloJsonSchema = {
   type: "object",
   properties: {
-    conteudo: string,
-    exercicios: { type: "array", minItems: 3, maxItems: 3, items: {
-      type: "object", properties: {
-        pergunta: string, resposta_esperada: string,
-        dica: { type: ["string", "null"] }, explicacao: { type: ["string", "null"] },
-      }, required: ["pergunta", "resposta_esperada"],
-    } },
+    conteudo: { type: "string", description: "Aula completa em Markdown, com 350 a 600 palavras. Desenvolva conceitos e explique cada etapa do exemplo resolvido e da prática guiada. Seções: ## Objetivos, ## Pré-requisitos, ## Conceitos, ## Exemplo resolvido, ## Prática guiada, ## Erros comuns e resumo." },
+    exercicios: { type: "array", minItems: 3, items: { anyOf: [
+      { type: "object", properties: { ...exercicioBase, tipo: { type: "string", enum: ["multipla_escolha"] },
+        alternativas: { type: "array", minItems: 4, maxItems: 4, items: alternativaJsonSchema } }, required: exercicioRequired },
+      { type: "object", properties: { ...exercicioBase, tipo: { type: "string", enum: ["previsao_saida"] },
+        alternativas: { type: "null" }, codigo: string, linguagem_codigo: string }, required: [...exercicioRequired, "codigo", "linguagem_codigo"] },
+    ] } },
   },
   required: ["conteudo", "exercicios"],
 };

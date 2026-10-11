@@ -7,7 +7,7 @@ const originalKey = process.env.GEMINI_API_KEY;
 const originalModel = process.env.GEMINI_MODEL;
 const fixture = {
   titulo: "Python", descricao: "Fundamentos",
-  modulos: Array.from({ length: 6 }, (_, i) => ({ titulo: `Módulo ${i + 1}`, resumo: "Fundamentos" })),
+  modulos: Array.from({ length: 6 }, (_, i) => ({ titulo: `Módulo ${i + 1}`, resumo: "Fundamentos", objetivos: ["Identificar conceitos", "Aplicar conceitos"], pre_requisitos: [] })),
 };
 const generate = () => gerarJsonGemini({
   prompt: (error?: string) => error ? `Corrija: ${error}` : "Planeje uma trilha",
@@ -113,8 +113,8 @@ describe("Gemini no servidor", () => {
   });
 
   test("valida conteúdo e exercícios de um módulo", async () => {
-    const module = { conteudo: "Explicação com exemplos. ".repeat(20) + '\n```python\nprint("Olá")\n```', exercicios: Array.from({ length: 3 }, () => ({
-      pergunta: "Qual função imprime?", resposta_esperada: "print", dica: null, explicacao: "print exibe texto",
+    const module = { conteudo: ['## Objetivos', '## Pré-requisitos', '## Conceitos', '## Exemplo resolvido', '## Prática guiada', '## Erros comuns e resumo'].map(t => t + '\nExplicação com exemplos.').join('\n') + '\n```python\nprint("Olá")\n```', exercicios: Array.from({ length: 3 }, (_, i) => ({
+      tipo: "multipla_escolha", pergunta: `Questão ${i + 1}: qual função imprime?`, resposta_esperada: "a", dica: "Considere a saída", explicacao: "print exibe texto", alternativas: [{ id: "a", texto: "print" }, { id: "b", texto: "input" }, { id: "c", texto: "len" }, { id: "d", texto: "int" }],
     })) };
     globalThis.fetch = (async () => answer(JSON.stringify(module))) as typeof fetch;
     expect(await gerarJsonGemini({ prompt: () => "Escreva um módulo", schema: ModuloSchema,

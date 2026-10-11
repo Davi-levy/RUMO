@@ -1,0 +1,471 @@
+[
+  {
+    "linguagem": "React",
+    "nivel": "iniciante",
+    "planejamento": {
+      "titulo": "React iniciante",
+      "descricao": "Trilha de referência para revisão de conteúdo",
+      "modulos": [
+        {
+          "titulo": "Componentes e props",
+          "resumo": "Aplicar Componentes e props",
+          "objetivos": [
+            "Criar um componente com props",
+            "Distinguir props de valores locais"
+          ],
+          "pre_requisitos": [
+            "Funções e objetos básicos de JavaScript",
+            "Elementos básicos de HTML"
+          ]
+        },
+        {
+          "titulo": "Estado e eventos",
+          "resumo": "Aplicar Estado e eventos",
+          "objetivos": [
+            "Identificar conceitos de Estado e eventos",
+            "Aplicar Estado e eventos em exemplos"
+          ],
+          "pre_requisitos": [
+            "Componentes e props"
+          ]
+        },
+        {
+          "titulo": "Efeitos e limpeza",
+          "resumo": "Aplicar Efeitos e limpeza",
+          "objetivos": [
+            "Identificar conceitos de Efeitos e limpeza",
+            "Aplicar Efeitos e limpeza em exemplos"
+          ],
+          "pre_requisitos": [
+            "Estado e eventos"
+          ]
+        },
+        {
+          "titulo": "Listas e chaves",
+          "resumo": "Aplicar Listas e chaves",
+          "objetivos": [
+            "Identificar conceitos de Listas e chaves",
+            "Aplicar Listas e chaves em exemplos"
+          ],
+          "pre_requisitos": [
+            "Efeitos e limpeza"
+          ]
+        },
+        {
+          "titulo": "Hooks personalizados",
+          "resumo": "Aplicar Hooks personalizados",
+          "objetivos": [
+            "Identificar conceitos de Hooks personalizados",
+            "Aplicar Hooks personalizados em exemplos"
+          ],
+          "pre_requisitos": [
+            "Listas e chaves"
+          ]
+        },
+        {
+          "titulo": "Memoização e identidade referencial",
+          "resumo": "Aplicar Memoização e identidade referencial",
+          "objetivos": [
+            "Identificar conceitos de Memoização e identidade referencial",
+            "Aplicar Memoização e identidade referencial em exemplos"
+          ],
+          "pre_requisitos": [
+            "Hooks personalizados"
+          ]
+        }
+      ]
+    },
+    "posicao": 1,
+    "modulo": {
+      "conteudo": "## Objetivos\n\n- Criar um componente com props\n- Distinguir props de valores locais\n\n## Pré-requisitos\n\n- Funções e objetos básicos de JavaScript\n- Elementos básicos de HTML\n\n## Conceitos\nNo React, componentes são blocos de construção reutilizáveis de interface. Eles funcionam como funções JavaScript que retornam elementos React descritos com JSX. Para tornar esses componentes dinâmicos e reutilizáveis, utilizamos as propriedades, conhecidas como props. As props agem como argumentos passados para uma função, permitindo que dados externos sejam injetados em um componente filho.\n\nJSX é uma sintaxe de descrição da interface, normalmente transformada pela ferramenta de build; não é uma string HTML comum nem código executável diretamente em qualquer console JavaScript. O componente descreve elementos React e React atualiza a interface. Não precisamos examinar campos internos desses elementos para aprender props. Neste módulo, concentre-se no contrato entre pai e filho e no texto que o componente descreve.\n\n## Exemplo resolvido\nAbaixo, criamos um componente chamado Saudacao que recebe uma prop chamada nome e exibe uma mensagem personalizada.\n\n```javascript\nfunction Saudacao(props) {\n  return <h1>Olá, {props.nome}!</h1>;\n}\n// Uso: <Saudacao nome=\"Maria\" />\n// Resultado renderizado: <h1>Olá, Maria!</h1>\n```\nO código acima define um componente funcional que lê a propriedade nome do objeto props e a injeta no JSX.\n\nPara acompanhar o exemplo, leia primeiro o ponto de uso: o pai fornece nome com o texto Maria. Na chamada do componente, props é um objeto com essa propriedade. As chaves dentro do JSX introduzem uma expressão JavaScript; props.nome consulta o valor recebido. A palavra nome escrita sem chaves seria apenas parte do texto. Esse mecanismo permite reutilizar a mesma estrutura com pessoas diferentes.\n\n## Prática guiada\nPara praticar, crie um componente chamado CartaoProduto que receba duas props: titulo e preco. Utilize essas props para exibir as informações de um produto dentro de uma estrutura HTML básica.\n\nNa prática guiada, defina um objeto de propriedades com titulo e preco e escolha os elementos que apresentam esses dois valores. Teste mentalmente dois produtos diferentes usando o mesmo componente. Evite modificar o objeto recebido para aplicar um desconto: calcule um novo valor local, preservando as props. Se uma propriedade estiver ausente, decida uma apresentação padrão simples e explique a decisão antes de acrescentar lógica.\n\n## Erros comuns e resumo\nUm erro frequente é tentar modificar diretamente o valor de uma props dentro do componente. As props são somente leitura (immutable) e qualquer alteração de estado interno deve ser feita utilizando o mecanismo de estado local.\n\n### Resumo\nNeste módulo, compreendemos como estruturar componentes funcionais em React e como utilizar as props para passar dados dinâmicos de componentes pais para filhos, garantindo a reutilização de código.",
+      "exercicios": [
+        {
+          "pergunta": "O que são props em um componente React?",
+          "dica": "Pense nas props como parâmetros passados para funções.",
+          "explicacao": "As props permitem passar dados de um componente pai para um componente filho.",
+          "tipo": "multipla_escolha",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "Variáveis internas que armazenam o estado mutável do componente."
+            },
+            {
+              "id": "b",
+              "texto": "Dados passados de um componente pai para configurar o componente filho."
+            },
+            {
+              "id": "c",
+              "texto": "Funções exclusivas para estilizar elementos CSS no React."
+            },
+            {
+              "id": "d",
+              "texto": "Métodos nativos para realizar requisições HTTP em servidores externos."
+            }
+          ],
+          "resposta_esperada": "b"
+        },
+        {
+          "pergunta": "Qual é a principal regra de utilização das props dentro de um componente?",
+          "dica": "Lembre-se de que o fluxo de dados no React é unidirecional.",
+          "explicacao": "As props são somente leitura para o componente que as recebe.",
+          "tipo": "multipla_escolha",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "Devem ser modificadas livremente a cada renderização."
+            },
+            {
+              "id": "b",
+              "texto": "Precisam ser declaradas obrigatoriamente como variáveis globais."
+            },
+            {
+              "id": "c",
+              "texto": "São somente leitura e não devem ser alteradas pelo componente receptor."
+            },
+            {
+              "id": "d",
+              "texto": "Somente podem aceitar valores numéricos inteiros."
+            }
+          ],
+          "resposta_esperada": "c"
+        },
+        {
+          "tipo": "multipla_escolha",
+          "pergunta": "Considere function Saudacao({ nome }) { return <h1>Olá, {nome}!</h1>; }. Ao usar <Saudacao nome=\"Maria\" />, qual texto o título apresenta?",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "Olá, nome!"
+            },
+            {
+              "id": "b",
+              "texto": "Olá, Maria!"
+            },
+            {
+              "id": "c",
+              "texto": "Olá, props!"
+            },
+            {
+              "id": "d",
+              "texto": "Nenhum texto, pois props só aceitam números."
+            }
+          ],
+          "resposta_esperada": "b",
+          "dica": "Substitua a expressão entre chaves pelo valor da propriedade.",
+          "explicacao": "O componente recebe nome igual a Maria. O JSX descreve um título com o texto Olá, Maria!; não exige prever a estrutura interna do elemento React."
+        }
+      ]
+    },
+    "revisao": {
+      "origem": "Gemini com revisão manual; exemplos de regressão, não gabaritos de trilhas de usuários",
+      "palavras": 440
+    }
+  },
+  {
+    "linguagem": "React",
+    "nivel": "intermediario",
+    "planejamento": {
+      "titulo": "React intermediario",
+      "descricao": "Trilha de referência para revisão de conteúdo",
+      "modulos": [
+        {
+          "titulo": "Componentes e props",
+          "resumo": "Aplicar Componentes e props",
+          "objetivos": [
+            "Identificar conceitos de Componentes e props",
+            "Aplicar Componentes e props em exemplos"
+          ],
+          "pre_requisitos": [
+            "Conhecimento básico de React"
+          ]
+        },
+        {
+          "titulo": "Estado e eventos",
+          "resumo": "Aplicar Estado e eventos",
+          "objetivos": [
+            "Identificar conceitos de Estado e eventos",
+            "Aplicar Estado e eventos em exemplos"
+          ],
+          "pre_requisitos": [
+            "Componentes e props"
+          ]
+        },
+        {
+          "titulo": "Efeitos e limpeza",
+          "resumo": "Aplicar Efeitos e limpeza",
+          "objetivos": [
+            "Explicar quando um efeito executa",
+            "Evitar dependências incorretas e limpar recursos"
+          ],
+          "pre_requisitos": [
+            "Estado e eventos"
+          ]
+        },
+        {
+          "titulo": "Listas e chaves",
+          "resumo": "Aplicar Listas e chaves",
+          "objetivos": [
+            "Identificar conceitos de Listas e chaves",
+            "Aplicar Listas e chaves em exemplos"
+          ],
+          "pre_requisitos": [
+            "Efeitos e limpeza"
+          ]
+        },
+        {
+          "titulo": "Hooks personalizados",
+          "resumo": "Aplicar Hooks personalizados",
+          "objetivos": [
+            "Identificar conceitos de Hooks personalizados",
+            "Aplicar Hooks personalizados em exemplos"
+          ],
+          "pre_requisitos": [
+            "Listas e chaves"
+          ]
+        },
+        {
+          "titulo": "Memoização e identidade referencial",
+          "resumo": "Aplicar Memoização e identidade referencial",
+          "objetivos": [
+            "Identificar conceitos de Memoização e identidade referencial",
+            "Aplicar Memoização e identidade referencial em exemplos"
+          ],
+          "pre_requisitos": [
+            "Hooks personalizados"
+          ]
+        }
+      ]
+    },
+    "posicao": 3,
+    "modulo": {
+      "conteudo": "## Objetivos\n\n- Explicar quando um efeito executa\n- Evitar dependências incorretas e limpar recursos\n\n## Pré-requisitos\n\n- Estado e eventos\n\n## Conceitos\nO Hook useEffect permite executar efeitos colaterais em componentes funcionais. Compreender o ciclo de vida e o array de dependências é fundamental para evitar loops infinitos e vazamentos de memória. A função de limpeza (cleanup) retornada pelo efeito é essencial para remover event listeners ou cancelar assinaturas.\n\nQuando um efeito usa uma prop ou estado reativo, a lista de dependências deve representar os valores que ele consulta. Omitir um deles pode prender o callback a um valor antigo. Ao mudar uma dependência, React limpa a configuração anterior e executa a nova. Em desenvolvimento com StrictMode pode haver um ciclo adicional de configuração e limpeza; o efeito precisa continuar correto, em vez de depender de executar exatamente uma vez.\n\n## Exemplo resolvido\nAbaixo, configuramos um efeito que adiciona um listener de redimensionamento da janela.\n\n```javascript\nimport { useState, useEffect } from 'react';\nfunction Janela() {\n  const [largura, setLargura] = useState(0);\n  useEffect(() => {\n    const atualiza = () => setLargura(window.innerWidth);\n    atualiza();\n    window.addEventListener('resize', atualiza);\n    return () => window.removeEventListener('resize', atualiza);\n  }, []);\n  return <p>{largura}</p>;\n}\n```\nO código acima registra o evento na montagem e o remove na desmontagem graças à função de retorno.\n\nA inicialização com zero permite renderizar sem acessar window no corpo inicial. O efeito roda apenas no cliente e atualiza a largura quando a janela existe. Depois registra a mesma função atualiza como listener e a remove na limpeza. Essa identidade importa: uma função anônima criada só no removeEventListener seria outra função, portanto não removeria a assinatura original. Leia configuração e limpeza como duas partes do mesmo contrato.\n\n## Prática guiada\nCrie um efeito que configure um temporizador utilizando setInterval e certifique-se de limpá-lo corretamente usando clearInterval no retorno do efeito.\n\nPara o temporizador da prática, guarde o identificador devolvido por setInterval e use esse identificador na função de limpeza. Se o callback incrementa um contador, avalie uma atualização funcional para não capturar apenas o valor inicial. Explique o bug antes de corrigir: sem limpeza, novas configurações podem deixar temporizadores antigos ativos. Evite testar o aprendizado pedindo uma ordem exata de logs de renderização dependente do ambiente.\n\n## Erros comuns e resumo\nEsquecer de incluir variáveis utilizadas dentro do useEffect no array de dependências, gerando dados desatualizados (stale closures).\n\n### Resumo\nDominamos o uso do useEffect, controlando sua execução através de dependências precisas e implementando a limpeza de recursos adequadamente.",
+      "exercicios": [
+        {
+          "pergunta": "Quando um useEffect sem array de dependências é executado?",
+          "dica": "Pense no comportamento padrão sem o segundo argumento.",
+          "explicacao": "Sem o array de dependências, o efeito roda após cada renderização do componente.",
+          "tipo": "multipla_escolha",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "Após cada renderização do componente."
+            },
+            {
+              "id": "b",
+              "texto": "Apenas uma vez, na montagem inicial."
+            },
+            {
+              "id": "c",
+              "texto": "Somente quando o estado é resetado."
+            },
+            {
+              "id": "d",
+              "texto": "Nunca é executado automaticamente."
+            }
+          ],
+          "resposta_esperada": "a"
+        },
+        {
+          "pergunta": "Qual é a utilidade da função retornada por um useEffect?",
+          "dica": "Serve para faxina de recursos.",
+          "explicacao": "A função de limpeza serve para evitar vazamentos de memória ao desmontar ou atualizar o efeito.",
+          "tipo": "multipla_escolha",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "Atualizar o estado global da aplicação."
+            },
+            {
+              "id": "b",
+              "texto": "Forçar uma nova renderização imediata."
+            },
+            {
+              "id": "c",
+              "texto": "Substituir o array de dependências."
+            },
+            {
+              "id": "d",
+              "texto": "Limpar recursos como timers ou listeners antes do efeito rodar novamente ou desmontar."
+            }
+          ],
+          "resposta_esperada": "d"
+        },
+        {
+          "tipo": "multipla_escolha",
+          "pergunta": "Um efeito depende da prop salaId e assina a sala correspondente. A assinatura anterior deve ser encerrada quando salaId mudar. Qual implementação atende a isso?",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "Usar dependências vazias e nunca remover a assinatura."
+            },
+            {
+              "id": "b",
+              "texto": "Assinar durante cada renderização, fora do efeito."
+            },
+            {
+              "id": "c",
+              "texto": "Usar [salaId] nas dependências e retornar uma função que encerra aquela assinatura."
+            },
+            {
+              "id": "d",
+              "texto": "Incluir apenas a variável local de limpeza no array de dependências."
+            }
+          ],
+          "resposta_esperada": "c",
+          "dica": "Associe cada configuração à sua própria limpeza.",
+          "explicacao": "Quando salaId muda, React executa a limpeza do efeito anterior e configura a nova assinatura. A limpeza também ocorre na desmontagem."
+        }
+      ]
+    },
+    "revisao": {
+      "origem": "Gemini com revisão manual; exemplos de regressão, não gabaritos de trilhas de usuários",
+      "palavras": 413
+    }
+  },
+  {
+    "linguagem": "React",
+    "nivel": "avancado",
+    "planejamento": {
+      "titulo": "React avancado",
+      "descricao": "Trilha de referência para revisão de conteúdo",
+      "modulos": [
+        {
+          "titulo": "Componentes e props",
+          "resumo": "Aplicar Componentes e props",
+          "objetivos": [
+            "Identificar conceitos de Componentes e props",
+            "Aplicar Componentes e props em exemplos"
+          ],
+          "pre_requisitos": [
+            "Conhecimento básico de React"
+          ]
+        },
+        {
+          "titulo": "Estado e eventos",
+          "resumo": "Aplicar Estado e eventos",
+          "objetivos": [
+            "Identificar conceitos de Estado e eventos",
+            "Aplicar Estado e eventos em exemplos"
+          ],
+          "pre_requisitos": [
+            "Componentes e props"
+          ]
+        },
+        {
+          "titulo": "Efeitos e limpeza",
+          "resumo": "Aplicar Efeitos e limpeza",
+          "objetivos": [
+            "Identificar conceitos de Efeitos e limpeza",
+            "Aplicar Efeitos e limpeza em exemplos"
+          ],
+          "pre_requisitos": [
+            "Estado e eventos"
+          ]
+        },
+        {
+          "titulo": "Listas e chaves",
+          "resumo": "Aplicar Listas e chaves",
+          "objetivos": [
+            "Identificar conceitos de Listas e chaves",
+            "Aplicar Listas e chaves em exemplos"
+          ],
+          "pre_requisitos": [
+            "Efeitos e limpeza"
+          ]
+        },
+        {
+          "titulo": "Hooks personalizados",
+          "resumo": "Aplicar Hooks personalizados",
+          "objetivos": [
+            "Identificar conceitos de Hooks personalizados",
+            "Aplicar Hooks personalizados em exemplos"
+          ],
+          "pre_requisitos": [
+            "Listas e chaves"
+          ]
+        },
+        {
+          "titulo": "Memoização e identidade referencial",
+          "resumo": "Aplicar Memoização e identidade referencial",
+          "objetivos": [
+            "Avaliar quando memoização ajuda",
+            "Analisar identidade de objetos e dependências"
+          ],
+          "pre_requisitos": [
+            "Hooks personalizados"
+          ]
+        }
+      ]
+    },
+    "posicao": 6,
+    "modulo": {
+      "conteudo": "## Objetivos\n\n- Avaliar quando memoização ajuda\n- Analisar identidade de objetos e dependências\n\n## Pré-requisitos\n\n- Hooks personalizados\n\n## Conceitos\nA memoização no React, através de useMemo e useCallback, otimiza o desempenho evitando cálculos custosos e re-renderizações desnecessárias. No entanto, o uso indiscriminado pode piorar a performance devido ao custo de alocação de memória e comparação de dependências. A identidade referencial de objetos e funções muda a cada renderização, o que frequentemente quebra as otimizações se não for tratada corretamente.\n\nUseCallback pode estabilizar uma função enquanto suas dependências continuam iguais. Isso é útil, por exemplo, quando um filho memoizado recebe essa função e a igualdade de props importa. Ainda assim, um filho pode renderizar por alterações no próprio estado ou contexto. Memorizar a função não constitui uma garantia de bloquear todas as renderizações. Primeiro localize o custo, depois avalie se manter um cache reduz esse custo de maneira mensurável.\n\n## Exemplo resolvido\nAbaixo, utilizamos useMemo para evitar o recálculo de uma operação pesada baseada nos itens recebidos e no filtro textual.\n\n```javascript\nimport { useState, useMemo } from 'react';\nfunction ListaPesada({ items }) {\n  const [filtro, setFiltro] = useState('');\n  const itensFiltrados = useMemo(() => {\n    return items.filter(item => item.includes(filtro));\n  }, [items, filtro]);\n  return <ul>{itensFiltrados.map(i => <li key={i}>{i}</li>)}</ul>;\n}\n```\nCom dependências iguais, useMemo pode reutilizar o resultado. A memoização é uma otimização; o código deve permanecer correto mesmo se o cache for descartado.\n\nCompare duas renderizações em que items mantém a mesma referência e filtro mantém o mesmo texto. A comparação de dependências pode permitir reutilizar o resultado filtrado. Se o pai cria um novo array com valores iguais, a referência de items muda; React não faz uma comparação profunda de todos os elementos para decidir. Estabilizar dependências deve refletir o fluxo real dos dados, não esconder uma mudança necessária.\n\n## Prática guiada\nAnalise um cenário onde um componente recebe uma função callback via props e utilize useCallback para estabilizar sua referência entre renderizações.\n\nNa prática guiada, escreva quais valores o callback lê e derive sua lista de dependências. Investigue o caso de um objeto criado dentro do componente: repetir o mesmo conteúdo não repete a identidade. Uma alternativa é depender diretamente de campos primitivos; outra é construir o objeto dentro do cálculo. Compare legibilidade e precisão das dependências. Evite inserir um array vazio só para estabilizar uma função que necessita de dados atualizados.\n\n## Erros comuns e resumo\nAplicar useMemo em cálculos triviais, adicionando overhead de complexidade sem ganho real de desempenho.\n\n### Resumo\nAvaliamos criticamente o uso de técnicas de memoização, compreendendo o impacto da identidade referencial na arquitetura de aplicações React complexas.",
+      "exercicios": [
+        {
+          "pergunta": "Quando o uso de useMemo é realmente recomendado?",
+          "dica": "Pense no custo computacional versus a simplicidade.",
+          "explicacao": "useMemo é recomendado para evitar recálculos caros em renderizações frequentes.",
+          "tipo": "multipla_escolha",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "Em todas as variáveis primitivas criadas dentro do componente."
+            },
+            {
+              "id": "b",
+              "texto": "Para substituir completamente o estado local do componente."
+            },
+            {
+              "id": "c",
+              "texto": "Para evitar cálculos computacionalmente custosos em renderizações repetidas."
+            },
+            {
+              "id": "d",
+              "texto": "Para garantir que requisições HTTP ocorram apenas uma vez."
+            }
+          ],
+          "resposta_esperada": "c"
+        },
+        {
+          "tipo": "multipla_escolha",
+          "pergunta": "Um useMemo depende de opcoes = { limite: 10 }, criado no corpo do componente em cada renderização. O limite não muda. Por que o cálculo continua sendo refeito?",
+          "alternativas": [
+            {
+              "id": "a",
+              "texto": "O objeto ganha uma referência nova, e a comparação de dependências detecta a mudança."
+            },
+            {
+              "id": "b",
+              "texto": "useMemo nunca aceita objetos."
+            },
+            {
+              "id": "c",
+              "texto": "O valor 10 muda automaticamente a cada renderização."
+            },
+            {
+              "id": "d",
+              "texto": "Todos os objetos com o mesmo conteúdo compartilham a mesma referência."
+            }
+          ],
+          "resposta_esperada": "a",
+          "dica": "Compare identidade de objeto com igualdade de seus campos.",
+          "explicacao": "Objetos literais novos têm referências distintas. Pode-se depender do valor primitivo limite ou criar o objeto dentro do cálculo, quando adequado."
+        },
+        {
+          "pergunta": "Qual será a saída da execução da comparação abaixo?\n\n```javascript\nconst a = {x: 1}; const b = {x: 1}; console.log(a === b);\n```",
+          "dica": "Dois objetos literais distintos possuem a mesma referência?",
+          "explicacao": "Em JavaScript, objetos literais criados separadamente possuem referências de memória diferentes.",
+          "tipo": "previsao_saida",
+          "alternativas": null,
+          "codigo": "const a = {x: 1}; const b = {x: 1}; console.log(a === b);",
+          "linguagem_codigo": "javascript",
+          "resposta_esperada": "false"
+        }
+      ]
+    },
+    "revisao": {
+      "origem": "Gemini com revisão manual; exemplos de regressão, não gabaritos de trilhas de usuários",
+      "palavras": 436
+    }
+  }
+]

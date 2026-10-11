@@ -2,9 +2,10 @@ import { describe, expect, test } from "bun:test";
 import { executarGeracaoTrilha } from "../src/lib/trilha-generation";
 
 const plano = { geracaoId: "e504fc13-dd42-42e6-91cc-68a077634c94", autorizacao: "assinatura-teste", titulo: "Python", descricao: "Fundamentos", modulos: [
-  { titulo: "Variáveis", resumo: "Tipos" }, { titulo: "Condições", resumo: "if" },
+  { titulo: "Variáveis", resumo: "Tipos", objetivos: ["Declarar variáveis", "Usar tipos"], pre_requisitos: [] }, { titulo: "Condições", resumo: "if", objetivos: ["Criar condições", "Comparar valores"], pre_requisitos: ["Variáveis"] },
+  ...["Laços", "Coleções", "Funções", "Erros"].map(titulo => ({ titulo, resumo: `Aplicar ${titulo}`, objetivos: [`Identificar ${titulo}`, `Aplicar ${titulo}`], pre_requisitos: ["Condições"] })),
 ] };
-const modulo = { conteudo: "Conteúdo", exercicios: [{ pergunta: "Função de saída?", resposta_esperada: "print" }] };
+const modulo = { conteudo: "Conteúdo", exercicios: [{ tipo: "previsao_saida" as const, pergunta: 'Saída de print("Olá")?', resposta_esperada: "Olá", alternativas: null, dica: "Literal", explicacao: "Imprime Olá" }] };
 const tema = { linguagem: "Python", nivel: "iniciante" as const };
 
 describe("Geração em etapas", () => {
@@ -19,13 +20,13 @@ describe("Geração em etapas", () => {
         chamadas.push(pedido.tituloModulo); return modulo;
       },
       salvar: async conteudo => {
-        expect(conteudo.modulos.map(m => m.titulo)).toEqual(["Variáveis", "Condições"]);
+        expect(conteudo.modulos.map(m => m.titulo)).toEqual(plano.modulos.map(m => m.titulo));
         chamadas.push("salvar"); return "trilha-id";
       },
       onPlano: () => {}, onModulo: () => {},
     });
     expect(id).toBe("trilha-id");
-    expect(chamadas).toEqual(["plano", "Variáveis", "Condições", "salvar"]);
+    expect(chamadas).toEqual(["plano", ...plano.modulos.map(m => m.titulo), "salvar"]);
   });
 
   test("falha de um módulo não grava uma trilha vazia ou parcial", async () => {

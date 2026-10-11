@@ -4,6 +4,8 @@ import { Navbar } from "@/components/Navbar";
 import { LanguageIcon } from "@/components/LanguageIcon";
 import { LegalLinks } from "@/components/LegalPage";
 import { HeroOrbits } from "@/components/HeroOrbits";
+import { FlipWords } from "@/components/FlipWords";
+import { techIcons } from "@/lib/tech-icons";
 
 
 export const Route = createFileRoute("/")({
@@ -17,6 +19,33 @@ export const Route = createFileRoute("/")({
 });
 
 const linguagens = ["Python", "TypeScript", "Rust", "Go", "React", "SQL", "Java", "Kotlin", "Next.js", "C"];
+const heroCores: Record<string, string> = {
+  Python: techIcons.python.color,
+  React: techIcons.react.color,
+  TypeScript: techIcons.typescript.color,
+  Django: "#44B78B",
+  JavaScript: techIcons.javascript.color,
+  "Next.js": "#FFFFFF",
+  Rust: "#DEA584",
+  Java: techIcons.java.color,
+  Go: techIcons.go.color,
+  Kotlin: techIcons.kotlin.color,
+  C: techIcons.c.color,
+  "C++": "#659AD2",
+  "C#": "#A179DC",
+  PHP: "#8892BF",
+  Ruby: "#CC342D",
+  Swift: "#F05138",
+  Angular: "#DD0031",
+  "Vue.js": "#4FC08D",
+  Svelte: "#FF3E00",
+  Laravel: "#FF2D20",
+  Flutter: "#54C5F8",
+  FastAPI: "#009688",
+  Express: "#FFFFFF",
+  Astro: "#FF5D01",
+};
+const heroTecnologias = Object.keys(heroCores);
 
 function Index() {
   return (
@@ -29,6 +58,8 @@ function Index() {
           <div className="min-w-0 text-center lg:text-left">
             <h1 className="font-display text-5xl md:text-6xl lg:text-[3.5rem] xl:text-6xl font-bold leading-[1.05] text-balance">
               <span>Aprenda a programar</span>
+              <br />
+              <FlipWords words={heroTecnologias} colors={heroCores} className="text-center lg:text-left" />
               <br />
               <span className="text-muted-foreground">com o apoio da IA</span>
             </h1>

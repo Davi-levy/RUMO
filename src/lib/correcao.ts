@@ -1,5 +1,6 @@
 // Correção local (sem IA): compara a resposta do aluno com a resposta esperada
 // por similaridade textual e monta um feedback avaliativo.
+import { normalizarSaida, type TipoExercicio } from "./exercicios";
 
 export type Resultado = "acertou" | "quase" | "errou";
 
@@ -67,5 +68,17 @@ export function corrigir(
   if (explicacao) feedback += `\n\n${explicacao}`;
 
   return { resultado, acertou: resultado === "acertou", score, feedback };
+}
+
+export function corrigirObjetivo(resposta: string, ex: {
+  tipo: Exclude<TipoExercicio, "legado">; resposta_esperada: string;
+  dica: string | null; explicacao: string | null;
+}): Correcao {
+  const acertou = ex.tipo === "multipla_escolha"
+    ? /^[a-d]$/.test(resposta) && resposta === ex.resposta_esperada
+    : normalizarSaida(resposta) === normalizarSaida(ex.resposta_esperada);
+  return { acertou, resultado: acertou ? "acertou" : "errou", score: acertou ? 1 : 0,
+    feedback: acertou ? `Correto.${ex.explicacao ? `\n\n${ex.explicacao}` : ""}`
+      : `Ainda não. Revise o exemplo e tente novamente.${ex.dica ? `\n\nDica: ${ex.dica}` : ""}` };
 }
 

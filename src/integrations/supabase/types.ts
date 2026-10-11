@@ -14,6 +14,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      relatos_exercicios: {
+        Row: { id: string; usuario_id: string; exercicio_id: string; observacao: string | null; criado_em: string }
+        Insert: { usuario_id: string; exercicio_id: string; observacao?: string | null }
+        Update: never
+        Relationships: [{ foreignKeyName: "relatos_exercicios_exercicio_id_fkey"; columns: ["exercicio_id"]; isOneToOne: false; referencedRelation: "exercicios"; referencedColumns: ["id"] }]
+      }
       avaliacoes_temas: {
         Row: { id: string; usuario_id: string; dia: string; vaga: number; criado_em: string }
         Insert: { usuario_id: string; vaga: number }
@@ -52,6 +58,8 @@ export type Database = {
       }
       exercicios: {
         Row: {
+          tipo: "legado" | "multipla_escolha" | "previsao_saida"
+          alternativas: Json | null
           criado_em: string
           dica: string | null
           explicacao: string | null
@@ -62,6 +70,8 @@ export type Database = {
           resposta_esperada: string
         }
         Insert: {
+          tipo?: "legado" | "multipla_escolha" | "previsao_saida"
+          alternativas?: Json | null
           criado_em?: string
           dica?: string | null
           explicacao?: string | null
@@ -72,6 +82,8 @@ export type Database = {
           resposta_esperada: string
         }
         Update: {
+          tipo?: "legado" | "multipla_escolha" | "previsao_saida"
+          alternativas?: Json | null
           criado_em?: string
           dica?: string | null
           explicacao?: string | null
