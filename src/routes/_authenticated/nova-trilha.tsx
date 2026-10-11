@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { gerarEsqueleto, gerarModulo } from "@/lib/trilha.functions";
+import { consultarLimiteDiario, gerarEsqueleto, gerarModulo } from "@/lib/trilha.functions";
 import { NIVEIS, type Nivel } from "@/lib/trilha.shared";
 import { executarGeracaoTrilha } from "@/lib/trilha-generation";
 import { Navbar } from "@/components/Navbar";
@@ -30,13 +30,33 @@ function NovaTrilha() {
   const [passos, setPassos] = useState<{ texto: string; feito: boolean }[]>([]);
   const criarEsqueleto = useServerFn(gerarEsqueleto);
   const criarModulo = useServerFn(gerarModulo);
+  const consultarLimite = useServerFn(consultarLimiteDiario);
+  const [restantes, setRestantes] = useState<number | null>(null);
+  useEffect(() => {
+    let ativo = true;
+    const atualizar = () => {
+      if (document.hidden) return;
+      void consultarLimite().then(limite => {
+        if (ativo) setRestantes(limite.restantes);
+      }).catch(() => {}); // A reserva no servidor continua sendo a verificação definitiva.
+    };
+    atualizar();
+    // Atualiza entre abas e libera o botão quando o dia vira com a página aberta.
+    window.addEventListener("focus", atualizar);
+    const timer = window.setInterval(atualizar, 60_000);
+    return () => {
+      ativo = false;
+      window.removeEventListener("focus", atualizar);
+      window.clearInterval(timer);
+    };
+  }, [consultarLimite]);
   const navigate = useNavigate();
   const geracaoAtual = useRef<AbortController | null>(null);
   useEffect(() => () => geracaoAtual.current?.abort(), []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!linguagem.trim() || gerando) return;
+    if (!linguagem.trim() || gerando || restantes === 0) return;
     const tema = linguagem.trim();
     const controller = new AbortController();
     geracaoAtual.current = controller;
@@ -114,7 +134,10 @@ function NovaTrilha() {
         toast.error(err instanceof Error ? err.message : "Erro ao gerar trilha");
       }
     } finally {
-      if (!signal.aborted) setGerando(false);
+      if (!signal.aborted) {
+        setGerando(false);
+        void consultarLimite().then(limite => setRestantes(limite.restantes)).catch(() => {});
+      }
       if (geracaoAtual.current === controller) geracaoAtual.current = null;
     }
   }
@@ -167,6 +190,12 @@ function NovaTrilha() {
               <p className="mt-3 text-sm text-muted-foreground">
                 Diga o que você quer aprender. A IA monta os módulos, o conteúdo e os exercícios.
               </p>
+              <p className="mt-3 text-xs text-muted-foreground" role="status">
+                {restantes === 0
+                  ? "Limite diário atingido. Você poderá gerar novas trilhas após 00h (horário de Brasília)."
+                  : `Até 2 gerações por dia${restantes === null ? "" : ` · ${restantes} restante${restantes === 1 ? "" : "s"} hoje`}.`}
+                {" "}Tentativas interrompidas também contam no limite.
+              </p>
 
               <form onSubmit={submit} className="mt-12 space-y-8">
                 <div>
@@ -216,7 +245,7 @@ function NovaTrilha() {
 
                 <button
                   type="submit"
-                  disabled={!linguagem.trim()}
+                  disabled={!linguagem.trim() || restantes === 0}
                   className="w-full bg-primary text-primary-foreground py-4 text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
                 >
                   Gerar trilha com IA

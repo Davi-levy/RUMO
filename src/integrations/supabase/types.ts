@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      geracoes_trilhas: {
+        Row: { id: string; usuario_id: string; dia: string; vaga: number; criado_em: string }
+        Insert: { usuario_id: string; vaga: number }
+        Update: never
+        Relationships: []
+      }
+      geracoes_modulos: {
+        Row: { geracao_id: string; posicao: number }
+        Insert: { geracao_id: string; posicao: number }
+        Update: never
+        Relationships: [{
+          foreignKeyName: "geracoes_modulos_geracao_id_fkey"
+          columns: ["geracao_id"]
+          isOneToOne: false
+          referencedRelation: "geracoes_trilhas"
+          referencedColumns: ["id"]
+        }]
+      }
       exercicios: {
         Row: {
           criado_em: string
@@ -199,7 +217,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      reservar_geracao_trilha: { Args: Record<PropertyKey, never>; Returns: string }
+      consultar_geracoes_hoje: { Args: Record<PropertyKey, never>; Returns: number }
     }
     Enums: {
       [_ in never]: never
