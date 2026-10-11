@@ -6,13 +6,14 @@ import type { Esqueleto, ModuloGerado } from "./trilha.server";
 import { EsqueletoSchema, ModuloSchema, promptEsqueleto, promptModulo, validarEsqueleto, validarModulo } from "./trilha.server";
 import { gerarJsonGemini, esqueletoJsonSchema, moduloJsonSchema } from "./gemini.server";
 import { reservarGeracao, reservarModulo } from "./trilha-quota.server";
+import { proximoReinicioDiario } from "./trilha-limite";
 
 export const consultarLimiteDiario = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase.rpc("consultar_geracoes_hoje");
     if (error || data === null) throw new Error("Não foi possível consultar seu limite diário.");
-    return { usadas: data, restantes: Math.max(0, 2 - data) };
+    return { usadas: data, restantes: Math.max(0, 2 - data), reiniciaEm: proximoReinicioDiario() };
   });
 
 export const gerarEsqueleto = createServerFn({ method: "POST" })

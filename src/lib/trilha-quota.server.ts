@@ -1,10 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { MENSAGEM_LIMITE_DIARIO } from "./trilha-limite";
 
 export async function reservarGeracao(supabase: SupabaseClient<Database>) {
   const { data, error } = await supabase.rpc("reservar_geracao_trilha");
   if (error?.code === "P0001") {
-    throw new Error("Você atingiu o limite de 2 gerações por dia. Tente novamente amanhã, após 00h (horário de Brasília).");
+    throw new Error(MENSAGEM_LIMITE_DIARIO);
   }
   if (error || !data) throw new Error("Não foi possível verificar seu limite diário. Tente novamente.");
   return data;

@@ -10,6 +10,8 @@ import { executarGeracaoTrilha } from "@/lib/trilha-generation";
 import { Navbar } from "@/components/Navbar";
 import { LanguageIcon } from "@/components/LanguageIcon";
 import { PageTransition } from "@/components/PageTransition";
+import { LimiteTrilhasPopup } from "@/components/LimiteTrilhasPopup";
+import { MENSAGEM_LIMITE_DIARIO, proximoReinicioDiario } from "@/lib/trilha-limite";
 
 export const Route = createFileRoute("/_authenticated/nova-trilha")({
   component: NovaTrilha,
@@ -32,12 +34,18 @@ function NovaTrilha() {
   const criarModulo = useServerFn(gerarModulo);
   const consultarLimite = useServerFn(consultarLimiteDiario);
   const [restantes, setRestantes] = useState<number | null>(null);
+  const [limiteAtingido, setLimiteAtingido] = useState(false);
+  const [reiniciaEm, setReiniciaEm] = useState(() => proximoReinicioDiario());
   useEffect(() => {
     let ativo = true;
     const atualizar = () => {
       if (document.hidden) return;
       void consultarLimite().then(limite => {
-        if (ativo) setRestantes(limite.restantes);
+        if (ativo) {
+          setRestantes(limite.restantes);
+          setReiniciaEm(limite.reiniciaEm);
+          if (limite.restantes > 0) setLimiteAtingido(false);
+        }
       }).catch(() => {}); // A reserva no servidor continua sendo a verificação definitiva.
     };
     atualizar();
@@ -56,7 +64,12 @@ function NovaTrilha() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!linguagem.trim() || gerando || restantes === 0) return;
+    if (gerando) return;
+    if (restantes === 0 && Date.now() < reiniciaEm) {
+      setLimiteAtingido(true);
+      return;
+    }
+    if (!linguagem.trim()) return;
     const tema = linguagem.trim();
     const controller = new AbortController();
     geracaoAtual.current = controller;
@@ -68,6 +81,14 @@ function NovaTrilha() {
       setPassos((p) => p.map((x, idx) => (idx === i ? { ...x, feito: true } : x)));
 
     try {
+      const limite = await consultarLimite();
+      signal.throwIfAborted();
+      setRestantes(limite.restantes);
+      setReiniciaEm(limite.reiniciaEm);
+      if (limite.restantes === 0) {
+        setLimiteAtingido(true);
+        return;
+      }
       const { data: user, error: authError } = await supabase.auth.getUser();
       if (authError || !user.user) throw new Error("Sessão expirada.");
       signal.throwIfAborted();
@@ -131,12 +152,19 @@ function NovaTrilha() {
       await navigate({ to: "/trilha/$trilhaId", params: { trilhaId } });
     } catch (err) {
       if (!signal.aborted) {
-        toast.error(err instanceof Error ? err.message : "Erro ao gerar trilha");
+        if (err instanceof Error && err.message === MENSAGEM_LIMITE_DIARIO) {
+          setLimiteAtingido(true);
+        } else {
+          toast.error(err instanceof Error ? err.message : "Erro ao gerar trilha");
+        }
       }
     } finally {
       if (!signal.aborted) {
         setGerando(false);
-        void consultarLimite().then(limite => setRestantes(limite.restantes)).catch(() => {});
+        void consultarLimite().then(limite => {
+          setRestantes(limite.restantes);
+          setReiniciaEm(limite.reiniciaEm);
+        }).catch(() => {});
       }
       if (geracaoAtual.current === controller) geracaoAtual.current = null;
     }
@@ -245,7 +273,7 @@ function NovaTrilha() {
 
                 <button
                   type="submit"
-                  disabled={!linguagem.trim() || restantes === 0}
+                  disabled={!linguagem.trim() && restantes !== 0}
                   className="w-full bg-primary text-primary-foreground py-4 text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
                 >
                   Gerar trilha com IA
@@ -255,6 +283,9 @@ function NovaTrilha() {
           )}
         </main>
       </PageTransition>
+      {limiteAtingido && (
+        <LimiteTrilhasPopup reiniciaEm={reiniciaEm} onClose={() => setLimiteAtingido(false)} />
+      )}
     </div>
   );
 }
