@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { PageTransition } from "@/components/PageTransition";
 import { Markdown } from "@/components/Markdown";
+import { TechnologyBadge } from "@/components/TechnologyBadge";
 
 export const Route = createFileRoute("/_authenticated/trilha/$trilhaId")({
   component: TrilhaPage,
@@ -81,9 +82,9 @@ function TrilhaPage() {
             <p className="mt-12 text-sm text-muted-foreground">Trilha não encontrada.</p>
           ) : (
             <>
-              <p className="mt-10 text-xs uppercase tracking-widest text-muted-foreground">
-                {trilha.linguagem}
-              </p>
+              <div className="mt-10">
+                <TechnologyBadge language={trilha.linguagem} />
+              </div>
               <h1 className="mt-3 font-display text-4xl font-bold">
                 {trilha.titulo}
               </h1>

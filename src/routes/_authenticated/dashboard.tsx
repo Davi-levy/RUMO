@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { PageTransition } from "@/components/PageTransition";
+import { TechnologyBadge } from "@/components/TechnologyBadge";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -118,9 +119,9 @@ function Dashboard() {
                       params={{ trilhaId: t.id }}
                       className="block border border-border p-6 hover:border-foreground transition-colors h-full"
                     >
-                      <div className="flex items-center justify-between text-xs uppercase tracking-widest text-muted-foreground">
-                        <span>{t.linguagem}</span>
-                        <span>{rotulos[t.nivel] ?? t.nivel}</span>
+                      <div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-widest text-muted-foreground">
+                        <TechnologyBadge language={t.linguagem} />
+                        <span className="shrink-0">{rotulos[t.nivel] ?? t.nivel}</span>
                       </div>
                       <h2 className="mt-4 font-display text-xl font-bold">{t.titulo}</h2>
                       {t.descricao && (
