@@ -131,7 +131,7 @@ function Dashboard() {
                           <div className="h-full bg-foreground transition-all" style={{ width: `${pct}%` }} />
                         </div>
                         <p className="mt-2 text-xs text-muted-foreground">
-                          {t.acertos} de {t.total} exercícios · {pct}%
+                          {t.total === 0 ? "Geração incompleta · sem exercícios" : `${t.acertos} de ${t.total} exercícios · ${pct}%`}
                         </p>
                       </div>
                     </Link>

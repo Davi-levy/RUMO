@@ -18,24 +18,27 @@ export async function gerarJsonGemini<T>(options: {
   responseSchema: Record<string, unknown>;
 }) {
   const key = process.env.GEMINI_API_KEY?.trim();
-  const model = process.env.GEMINI_MODEL?.trim() || "gemini-3.8-flash";
+  const model = process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash-lite";
   if (!key) throw new Error("Configure GEMINI_API_KEY no servidor para gerar trilhas.");
   if (!/^[a-zA-Z0-9._-]+$/.test(model)) throw new Error("GEMINI_MODEL inválido.");
 
   let erroAnterior: string | undefined;
+  // O prazo cobre as duas tentativas e a leitura do corpo, não apenas os headers.
+  const signal = AbortSignal.timeout(90_000);
   for (let tentativa = 0; tentativa < 2; tentativa++) {
     let response: Response;
     try {
       response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-        signal: AbortSignal.timeout(90_000),
+        signal,
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text: options.prompt(erroAnterior) }] }],
           generationConfig: {
             responseMimeType: "application/json",
             responseJsonSchema: options.responseSchema,
             maxOutputTokens: 8192,
+            ...(model.startsWith("gemini-3") ? { thinkingConfig: { thinkingLevel: "LOW" } } : {}),
           },
         }),
       });
@@ -45,10 +48,14 @@ export async function gerarJsonGemini<T>(options: {
 
     // Nunca repassa o corpo de erros do provedor: pode conter informações sensíveis.
     if (!response.ok) {
+      if (tentativa === 0 && (response.status === 408 || response.status >= 500)) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        continue;
+      }
       if (response.status === 429) throw new Error("Limite de uso do Gemini atingido. Aguarde e verifique a cota da API.");
       if (response.status === 401 || response.status === 403) throw new Error("O Gemini recusou o acesso. Verifique a chave e as permissões no servidor.");
       if (response.status === 404) throw new Error("Modelo Gemini indisponível. Verifique GEMINI_MODEL no servidor.");
-      throw new Error("O Gemini não conseguiu gerar o conteúdo. Tente novamente.");
+      throw new Error(`O Gemini não conseguiu gerar o conteúdo (HTTP ${response.status}). Tente novamente.`);
     }
 
     let result: z.infer<typeof ResponseSchema>;

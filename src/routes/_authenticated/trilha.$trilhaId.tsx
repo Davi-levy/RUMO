@@ -89,6 +89,15 @@ function TrilhaPage() {
               </h1>
               {trilha.descricao && <p className="mt-4 text-sm text-muted-foreground">{trilha.descricao}</p>}
 
+              {modulos.length === 0 && (
+                <div className="mt-14 text-sm text-muted-foreground">
+                  <p>A geração desta trilha não foi concluída. Nenhum módulo foi salvo.</p>
+                  <Link to="/nova-trilha" className="mt-4 inline-block border border-border px-4 py-2 text-foreground">
+                    Gerar uma nova trilha
+                  </Link>
+                </div>
+              )}
+
               <div className="mt-14 divide-y divide-border border-y border-border">
                 {modulos.map((m, i) => {
                   const total = m.exercicios.length;

@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { gerarEsqueleto, gerarModulo } from "@/lib/trilha.functions";
 import { NIVEIS, type Nivel } from "@/lib/trilha.shared";
+import { executarGeracaoTrilha } from "@/lib/trilha-generation";
 import { Navbar } from "@/components/Navbar";
 import { LanguageIcon } from "@/components/LanguageIcon";
 import { PageTransition } from "@/components/PageTransition";
@@ -30,11 +31,16 @@ function NovaTrilha() {
   const criarEsqueleto = useServerFn(gerarEsqueleto);
   const criarModulo = useServerFn(gerarModulo);
   const navigate = useNavigate();
+  const geracaoAtual = useRef<AbortController | null>(null);
+  useEffect(() => () => geracaoAtual.current?.abort(), []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!linguagem.trim()) return;
+    if (!linguagem.trim() || gerando) return;
     const tema = linguagem.trim();
+    const controller = new AbortController();
+    geracaoAtual.current = controller;
+    const { signal } = controller;
     setGerando(true);
     setPassos([{ texto: "Planejando os módulos", feito: false }]);
 
@@ -42,78 +48,74 @@ function NovaTrilha() {
       setPassos((p) => p.map((x, idx) => (idx === i ? { ...x, feito: true } : x)));
 
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Sessão expirada.");
+      const { data: user, error: authError } = await supabase.auth.getUser();
+      if (authError || !user.user) throw new Error("Sessão expirada.");
+      signal.throwIfAborted();
+      const userId = user.user.id;
 
-      const esqueleto = await criarEsqueleto({ data: { linguagem: tema, nivel } });
-      concluir(0);
+      const trilhaId = await executarGeracaoTrilha({ linguagem: tema, nivel }, {
+        signal,
+        gerarEsqueleto: data => criarEsqueleto({ data }),
+        gerarModulo: data => criarModulo({ data }),
+        onPlano: plano => setPassos([
+          { texto: "Planejando os módulos", feito: true },
+          ...plano.modulos.map(m => ({ texto: `Escrevendo: ${m.titulo}`, feito: false })),
+          { texto: "Salvando trilha", feito: false },
+        ]),
+        onModulo: i => concluir(i + 1),
+        salvar: async ({ esqueleto, modulos }) => {
+          let id: string | undefined;
+          try {
+            signal.throwIfAborted();
+            const { data: trilha, error } = await supabase.from("trilhas").insert({
+              usuario_id: userId, linguagem: tema, nivel,
+              titulo: esqueleto.titulo, descricao: esqueleto.descricao,
+            }).select("id").single();
+            if (error || !trilha) throw new Error(error?.message ?? "Falha ao salvar a trilha.");
+            id = trilha.id;
+            signal.throwIfAborted();
 
-      const { data: novaTrilha, error: errTrilha } = await supabase
-        .from("trilhas")
-        .insert({
-          usuario_id: user.user.id,
-          linguagem: tema,
-          nivel,
-          titulo: esqueleto.titulo,
-          descricao: esqueleto.descricao,
-        })
-        .select("id")
-        .single();
-      if (errTrilha || !novaTrilha) throw errTrilha ?? new Error("Falha ao salvar a trilha.");
+            for (const [i, item] of modulos.entries()) {
+              const { data: modulo, error: errModulo } = await supabase.from("modulos").insert({
+                trilha_id: id, titulo: item.titulo, conteudo: item.gerado.conteudo, ordem: i,
+              }).select("id").single();
+              if (errModulo || !modulo) throw new Error(errModulo?.message ?? "Falha ao salvar o módulo.");
+              signal.throwIfAborted();
+              const { error: errEx } = await supabase.from("exercicios").insert(
+                item.gerado.exercicios.map((ex, j) => ({
+                  modulo_id: modulo.id, pergunta: ex.pergunta, resposta_esperada: ex.resposta_esperada,
+                  dica: ex.dica ?? null, explicacao: ex.explicacao ?? null, ordem: j,
+                })),
+              );
+              if (errEx) throw new Error(errEx.message);
+              signal.throwIfAborted();
+            }
+            concluir(modulos.length + 1);
+            return id;
+          } catch (error) {
+            if (id) {
+              // RLS restringe a exclusão ao dono; o banco remove módulos e exercícios em cascata.
+              const { data: removidas, error: cleanupError } = await supabase.from("trilhas")
+                .delete().eq("id", id).eq("usuario_id", userId).select("id");
+              if (cleanupError || !removidas?.length) {
+                throw new Error("Falha ao salvar a trilha. Também não foi possível remover os dados incompletos.");
+              }
+            }
+            throw error;
+          }
+        },
+      });
 
-      setPassos([
-        { texto: "Planejando os módulos", feito: true },
-        ...esqueleto.modulos.map((m) => ({ texto: `Escrevendo: ${m.titulo}`, feito: false })),
-      ]);
-
-      const total = esqueleto.modulos.length;
-      for (let i = 0; i < total; i++) {
-        const plano = esqueleto.modulos[i]!;
-        const gerado = await criarModulo({
-          data: {
-            linguagem: tema,
-            nivel,
-            tituloTrilha: esqueleto.titulo,
-            tituloModulo: plano.titulo,
-            resumoModulo: plano.resumo,
-            posicao: i + 1,
-            total,
-          },
-        });
-
-        const { data: modulo, error: errModulo } = await supabase
-          .from("modulos")
-          .insert({
-            trilha_id: novaTrilha.id,
-            titulo: plano.titulo,
-            conteudo: gerado.conteudo,
-            ordem: i,
-          })
-          .select("id")
-          .single();
-        if (errModulo || !modulo) throw errModulo ?? new Error("Falha ao salvar o módulo.");
-
-        const { error: errEx } = await supabase.from("exercicios").insert(
-          gerado.exercicios.map((ex, j) => ({
-            modulo_id: modulo.id,
-            pergunta: ex.pergunta,
-            resposta_esperada: ex.resposta_esperada,
-            dica: ex.dica ?? null,
-            explicacao: ex.explicacao ?? null,
-            ordem: j,
-          })),
-        );
-        if (errEx) throw errEx;
-
-        concluir(i + 1);
-      }
-
+      signal.throwIfAborted();
       toast.success("Trilha criada!");
-      navigate({ to: "/trilha/$trilhaId", params: { trilhaId: novaTrilha.id } });
+      await navigate({ to: "/trilha/$trilhaId", params: { trilhaId } });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erro ao gerar trilha";
-      toast.error(msg);
-      setGerando(false);
+      if (!signal.aborted) {
+        toast.error(err instanceof Error ? err.message : "Erro ao gerar trilha");
+      }
+    } finally {
+      if (!signal.aborted) setGerando(false);
+      if (geracaoAtual.current === controller) geracaoAtual.current = null;
     }
   }
 

@@ -101,7 +101,14 @@ export function validarModulo(m: ModuloGerado) {
 
 export function extrairJson(text: string): unknown {
   let raw = text.trim();
-  const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+  // O conteúdo do módulo contém cercas de código dentro das strings JSON.
+  // Parsear primeiro impede confundi-las com uma cerca ao redor da resposta.
+  try {
+    return JSON.parse(raw);
+  } catch {
+    // Aceita também uma resposta envolvida em Markdown ou texto extra.
+  }
+  const fence = raw.match(/^```(?:json)?\s*([\s\S]*?)```\s*$/i);
   if (fence?.[1]) raw = fence[1].trim();
   const start = raw.indexOf("{");
   const end = raw.lastIndexOf("}");

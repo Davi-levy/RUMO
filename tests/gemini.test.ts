@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { gerarJsonGemini, esqueletoJsonSchema, moduloJsonSchema } from "../src/lib/gemini.server";
-import { EsqueletoSchema, ModuloSchema, validarEsqueleto, validarModulo } from "../src/lib/trilha.server";
+import { EsqueletoSchema, ModuloSchema, validarEsqueleto, validarModulo, extrairJson } from "../src/lib/trilha.server";
 
 const originalFetch = globalThis.fetch;
 const originalKey = process.env.GEMINI_API_KEY;
@@ -30,6 +30,15 @@ afterEach(() => {
 });
 
 describe("Gemini no servidor", () => {
+  test("usa o modelo Flash-Lite como padrão", async () => {
+    delete process.env.GEMINI_MODEL;
+    globalThis.fetch = (async url => {
+      expect(String(url)).toEndWith("models/gemini-3.5-flash-lite:generateContent");
+      return answer(JSON.stringify(fixture));
+    }) as typeof fetch;
+    expect(await generate()).toEqual(fixture);
+  });
+
   test("envia chave no header, modelo configurado e schema estruturado", async () => {
     globalThis.fetch = (async (url, options) => {
       expect(String(url)).toEndWith("models/gemini-test:generateContent");
@@ -68,6 +77,16 @@ describe("Gemini no servidor", () => {
     expect(calls).toBe(1);
   });
 
+  test("repete uma vez em falha temporária do provedor", async () => {
+    let calls = 0;
+    globalThis.fetch = (async () => {
+      calls++;
+      return calls === 1 ? Response.json({}, { status: 503 }) : answer(JSON.stringify(fixture));
+    }) as typeof fetch;
+    expect(await generate()).toEqual(fixture);
+    expect(calls).toBe(2);
+  });
+
   test.each([401, 403, 404, 500])("trata HTTP %i sem divulgar dados do provedor", async status => {
     globalThis.fetch = (async () => Response.json({ error: "test-key-only" }, { status })) as typeof fetch;
     const message = status === 401 || status === 403 ? "O Gemini recusou o acesso"
@@ -94,11 +113,19 @@ describe("Gemini no servidor", () => {
   });
 
   test("valida conteúdo e exercícios de um módulo", async () => {
-    const module = { conteudo: "Explicação com exemplos. ".repeat(20), exercicios: Array.from({ length: 3 }, () => ({
+    const module = { conteudo: "Explicação com exemplos. ".repeat(20) + '\n```python\nprint("Olá")\n```', exercicios: Array.from({ length: 3 }, () => ({
       pergunta: "Qual função imprime?", resposta_esperada: "print", dica: null, explicacao: "print exibe texto",
     })) };
     globalThis.fetch = (async () => answer(JSON.stringify(module))) as typeof fetch;
     expect(await gerarJsonGemini({ prompt: () => "Escreva um módulo", schema: ModuloSchema,
       validar: validarModulo, responseSchema: moduloJsonSchema })).toEqual(module);
+  });
+
+  test("preserva blocos de código dentro de JSON, inclusive envolvido em cercas Markdown", () => {
+    const value = { conteudo: 'Exemplo:\n```javascript\nconst obj = { nome: "Rumo" };\n```' };
+    const json = JSON.stringify(value);
+    expect(extrairJson(json)).toEqual(value);
+    expect(extrairJson(`\`\`\`json\n${json}\n\`\`\``)).toEqual(value);
+    expect(extrairJson(`Aqui está o módulo:\n${json}\nFim.`)).toEqual(value);
   });
 });
