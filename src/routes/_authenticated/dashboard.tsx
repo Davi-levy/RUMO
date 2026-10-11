@@ -74,11 +74,19 @@ function Dashboard() {
         <main className="max-w-5xl mx-auto px-6 pt-32 pb-24">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
-              <h1 className="font-display text-4xl font-bold">
-                Suas trilhas
+              <h1 className="flex items-center gap-2 font-display text-4xl font-bold">
+                <span>Suas trilhas</span>
+                <img
+                  src="/icons/trilhas.png"
+                  alt=""
+                  aria-hidden="true"
+                  width={64}
+                  height={64}
+                  className="h-16 w-16 shrink-0 object-contain"
+                />
               </h1>
               <p className="mt-3 text-sm text-muted-foreground">
-                Escolha uma linguagem e a IA monta a trilha completa para você.
+                Escolha uma linguage/framework ou uma dúvida e a nossa IA monta a trilha completa para você.
               </p>
             </div>
             <Link

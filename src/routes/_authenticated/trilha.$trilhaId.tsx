@@ -6,6 +6,7 @@ import { Navbar } from "@/components/Navbar";
 import { PageTransition } from "@/components/PageTransition";
 import { Markdown } from "@/components/Markdown";
 import { TechnologyBadge } from "@/components/TechnologyBadge";
+import { TrilhaVideos } from "@/components/TrilhaVideos";
 
 export const Route = createFileRoute("/_authenticated/trilha/$trilhaId")({
   component: TrilhaPage,
@@ -161,6 +162,7 @@ function TrilhaPage() {
                   );
                 })}
               </div>
+              {modulos.length > 0 && <TrilhaVideos key={trilhaId} trilhaId={trilhaId} />}
             </>
           )}
         </main>

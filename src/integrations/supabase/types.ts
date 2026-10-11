@@ -14,6 +14,18 @@ export type Database = {
   }
   public: {
     Tables: {
+      youtube_recomendacoes: {
+        Row: { trilha_id: string; contexto: string; estado: string; videos: Json; criado_em: string }
+        Insert: { trilha_id: string; contexto?: string }
+        Update: { estado?: string; videos?: Json }
+        Relationships: [{
+          foreignKeyName: "youtube_recomendacoes_trilha_id_fkey"
+          columns: ["trilha_id"]
+          isOneToOne: false
+          referencedRelation: "trilhas"
+          referencedColumns: ["id"]
+        }]
+      }
       geracoes_trilhas: {
         Row: { id: string; usuario_id: string; dia: string; vaga: number; criado_em: string }
         Insert: { usuario_id: string; vaga: number }
