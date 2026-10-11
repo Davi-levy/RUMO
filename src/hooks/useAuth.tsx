@@ -3,6 +3,8 @@ import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { atualizarRecovery } from "@/lib/password-recovery";
 
+export const LOGIN_REALIZADO_KEY = "rumo:login-realizado:v1";
+
 interface AuthState {
   user: User | null;
   session: Session | null;
@@ -18,6 +20,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // INITIAL_SESSION também restaura a sessão salva, sem uma leitura concorrente.
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        try {
+          window.localStorage.setItem(LOGIN_REALIZADO_KEY, "1");
+        } catch {
+          // Persistir a preferência é opcional quando o navegador bloqueia armazenamento.
+        }
+      }
       setState({ user: session?.user ?? null, session, loading: false, recovery: atualizarRecovery(event, session?.user.id) });
     });
 

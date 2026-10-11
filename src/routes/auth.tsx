@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Info } from "lucide-react";
 import { isAuthError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { LOGIN_REALIZADO_KEY, useAuth } from "@/hooks/useAuth";
 import { LegalLinks } from "@/components/LegalPage";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
@@ -32,12 +32,28 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [mostrarNovidade, setMostrarNovidade] = useState(false);
+  const novidadeVerificada = useRef(false);
   const { user, loading, recovery } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!loading && user) navigate({ to: recovery ? "/redefinir-senha" : "/dashboard", replace: true });
   }, [user, loading, recovery, navigate]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (user) { setMostrarNovidade(false); return; }
+    if (novidadeVerificada.current) return;
+    novidadeVerificada.current = true;
+    try {
+      if (window.localStorage.getItem(LOGIN_REALIZADO_KEY) === "1") return;
+      setMostrarNovidade(true);
+    } catch {
+      // Armazenamento bloqueado não impede o aviso nem a autenticação.
+      setMostrarNovidade(true);
+    }
+  }, [loading, user]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -100,11 +116,22 @@ function AuthPage() {
           transition={{ duration: 0.5 }}
           className="w-full max-w-sm"
         >
+          {mostrarNovidade && (
+            <section role="note" aria-labelledby="novidade-google-titulo" className="mb-6 flex items-start gap-3 rounded-[10px] border border-border bg-card p-4">
+              <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <div className="min-w-0">
+                <h2 id="novidade-google-titulo" className="text-sm font-semibold">Novo: entrar usando Google</h2>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  Agora você pode entrar ou criar sua conta de forma mais fácil usando sua conta do Google!
+                </p>
+              </div>
+            </section>
+          )}
           <h1 className="font-display text-3xl font-bold">
             {modo === "entrar" ? "Entrar" : "Criar conta"}
           </h1>
           <p className="mt-3 text-sm text-muted-foreground">
-            As trilhas ficam salvas na sua conta
+            As trilhas ficam salvas na sua conta e são privadas.
           </p>
 
           <form onSubmit={submit} className="mt-8 space-y-4">
