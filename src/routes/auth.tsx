@@ -6,6 +6,7 @@ import { ChevronRight } from "lucide-react";
 import { isAuthError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { LegalLinks } from "@/components/LegalPage";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -168,6 +169,7 @@ function AuthPage() {
           >
             {modo === "entrar" ? "Não tem conta? Criar" : "Já tem conta? Entrar"}
           </button>
+          <div className="mt-6"><LegalLinks /></div>
         </motion.div>
       </div>
     </main>

@@ -1,4 +1,4 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
 
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -73,6 +73,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  // Documentos públicos também precisam abrir se o serviço de autenticação estiver indisponível.
+  if (["/privacidade", "/termos"].includes(pathname.replace(/\/$/, ""))) {
+    return <><Outlet /><Toaster /></>;
+  }
   return (
     <AuthProvider>
       <Outlet />

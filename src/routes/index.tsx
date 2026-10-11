@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Github, ChevronRight } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { LanguageIcon } from "@/components/LanguageIcon";
+import { LegalLinks } from "@/components/LegalPage";
 
 
 export const Route = createFileRoute("/")({
@@ -117,7 +118,7 @@ function Index() {
             <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
             <span className="logo-outline">RUMO</span>
           </div>
-          <div />
+          <LegalLinks />
           <a
             href="https://github.com/Davi-levy/RUMO"
             target="_blank"
