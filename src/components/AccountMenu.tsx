@@ -48,13 +48,14 @@ export function AccountMenu({ user }: { user: User }) {
       if (!event.currentTarget.contains(event.relatedTarget)) setAberto(false);
     }}>
       <button ref={trigger} type="button" aria-label="Menu da conta" aria-haspopup="menu" aria-expanded={aberto} aria-controls={id}
-        className="flex rounded-full outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="account-menu-trigger flex cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         onClick={() => setAberto(!aberto)} onKeyDown={(event) => {
           if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); setAberto(true); }
         }}>
         <UserAvatar user={user} />
       </button>
-      {aberto && <div ref={menu} id={id} role="menu" aria-label="Conta" className="absolute right-0 top-full mt-3 w-48 rounded-xl border border-border bg-[#202020] p-1.5 shadow-xl"
+      <div ref={menu} id={id} role="menu" aria-label="Conta" aria-hidden={!aberto} inert={!aberto} data-open={aberto}
+        className="account-dropdown absolute right-0 top-full mt-3 w-48 rounded-xl border border-white/10 bg-[#0b0b0c] p-2 shadow-[0_12px_36px_rgba(0,0,0,0.55)]"
         onKeyDown={(event) => {
           const items = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>("button"));
           const current = items.indexOf(document.activeElement as HTMLButtonElement);
@@ -65,14 +66,14 @@ export function AccountMenu({ user }: { user: User }) {
             items[index]?.focus();
           }
         }}>
-        <button type="button" role="menuitem" className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-white/10 focus:bg-white/10 outline-none" onClick={() => { setAberto(false); setConta(true); }}>
+        <button type="button" role="menuitem" className="account-menu-item flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-muted-foreground outline-none" onClick={() => { setAberto(false); setConta(true); }}>
           <UserRound className="h-4 w-4" />Conta
         </button>
-        <div role="separator" className="my-1 border-t border-white/10" />
-        <button type="button" role="menuitem" disabled={saindo} onClick={sair} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-white/10 focus:bg-white/10 outline-none disabled:opacity-50">
+        <div role="separator" className="mx-3 my-1.5 border-t border-white/[0.08]" />
+        <button type="button" role="menuitem" disabled={saindo} onClick={sair} className="account-menu-item flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-muted-foreground outline-none disabled:opacity-50">
           <LogOut className="h-4 w-4" />{saindo ? "Saindo..." : "Sair"}
         </button>
-      </div>}
+      </div>
       {conta && <AccountPopup user={user} proximoEmail={proximoEmail} onEmailSent={() => setProximoEmail(Date.now() + 60_000)} onClose={() => { setConta(false); trigger.current?.focus(); }} />}
     </div>
   );

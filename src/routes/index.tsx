@@ -3,6 +3,7 @@ import { Github, ChevronRight } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { LanguageIcon } from "@/components/LanguageIcon";
 import { LegalLinks } from "@/components/LegalPage";
+import { HeroOrbits } from "@/components/HeroOrbits";
 
 
 export const Route = createFileRoute("/")({
@@ -23,34 +24,35 @@ function Index() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative pt-40 pb-32 px-6 overflow-hidden">
-        <div className="relative max-w-5xl mx-auto text-center">
-          {}
+      <section className="relative pt-32 pb-16 lg:pt-40 lg:pb-32 px-6 overflow-hidden">
+        <div className="relative max-w-5xl mx-auto grid items-center gap-12 lg:grid-cols-[1.15fr_1fr] lg:gap-8">
+          <div className="min-w-0 text-center lg:text-left">
+            <h1 className="font-display text-5xl md:text-6xl lg:text-[3.5rem] xl:text-6xl font-bold leading-[1.05] text-balance">
+              <span>Aprenda a programar</span>
+              <br />
+              <span className="text-muted-foreground">com o apoio da IA</span>
+            </h1>
 
-          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold leading-[0.95] text-balance">
-            <span>Aprenda a programar</span>
-            <br />
-            <span className="text-muted-foreground">com o apoio da IA</span>
-          </h1>
+            <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0">
+              Trilhas de exercícios com feedback inteligente e personalizado.
+            </p>
 
-          <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Trilhas de exercícios com feedback inteligente e personalizado.
-          </p>
-
-          <div className="mt-12 flex items-center justify-center gap-4">
-            <Link
-              to="/dashboard"
-              className="ripple-btn px-8 py-4 bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
-            >
-              Começar
-            </Link>
-            <Link
-              to="/dashboard"
-              className="px-8 py-4 border border-border text-foreground hover:border-foreground transition-colors"
-            >
-              Suas trilhas
-            </Link>
+            <div className="mt-12 flex flex-wrap items-center justify-center lg:justify-start gap-4">
+              <Link
+                to="/dashboard"
+                className="ripple-btn px-8 py-4 bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
+              >
+                Começar
+              </Link>
+              <Link
+                to="/dashboard"
+                className="px-8 py-4 border border-border text-foreground hover:border-foreground transition-colors"
+              >
+                Suas trilhas
+              </Link>
+            </div>
           </div>
+          <HeroOrbits />
         </div>
       </section>
 
