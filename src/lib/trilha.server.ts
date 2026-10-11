@@ -14,9 +14,9 @@ export function rotuloNivel(nivel: Nivel) {
 // --- Etapa 1: esqueleto da trilha (rápido, poucos tokens) ---
 
 export const EsqueletoSchema = z.object({
-  titulo: z.string(),
-  descricao: z.string(),
-  modulos: z.array(z.object({ titulo: z.string(), resumo: z.string() })),
+  titulo: z.string().max(200),
+  descricao: z.string().max(1000),
+  modulos: z.array(z.object({ titulo: z.string().max(200), resumo: z.string().max(2000) })).max(6),
 });
 
 export type Esqueleto = z.infer<typeof EsqueletoSchema>;

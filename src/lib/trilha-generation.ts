@@ -4,6 +4,7 @@ import type { Nivel } from "./trilha.shared";
 type Tema = { linguagem: string; nivel: Nivel };
 type PedidoModulo = Tema & {
   geracaoId: string;
+  autorizacao: string;
   tituloTrilha: string; tituloModulo: string; resumoModulo: string; posicao: number; total: number;
 };
 export type ConteudoTrilha = {
@@ -32,7 +33,7 @@ async function aguardar<T>(operation: () => Promise<T>, signal: AbortSignal, tit
 
 export async function executarGeracaoTrilha(tema: Tema, options: {
   signal: AbortSignal;
-  gerarEsqueleto: (tema: Tema) => Promise<Esqueleto & { geracaoId: string }>;
+  gerarEsqueleto: (tema: Tema) => Promise<Esqueleto & { geracaoId: string; autorizacao: string }>;
   gerarModulo: (pedido: PedidoModulo) => Promise<ModuloGerado>;
   salvar: (conteudo: ConteudoTrilha) => Promise<string>;
   onPlano: (plano: Esqueleto) => void;
@@ -45,6 +46,7 @@ export async function executarGeracaoTrilha(tema: Tema, options: {
   for (const [i, plano] of esqueleto.modulos.entries()) {
     const gerado = await aguardar(() => options.gerarModulo({
       geracaoId: esqueleto.geracaoId,
+      autorizacao: esqueleto.autorizacao,
       ...tema, tituloTrilha: esqueleto.titulo, tituloModulo: plano.titulo,
       resumoModulo: plano.resumo, posicao: i + 1, total: esqueleto.modulos.length,
     }), options.signal, plano.titulo);

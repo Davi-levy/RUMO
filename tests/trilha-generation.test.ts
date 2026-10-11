@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { executarGeracaoTrilha } from "../src/lib/trilha-generation";
 
-const plano = { geracaoId: "e504fc13-dd42-42e6-91cc-68a077634c94", titulo: "Python", descricao: "Fundamentos", modulos: [
+const plano = { geracaoId: "e504fc13-dd42-42e6-91cc-68a077634c94", autorizacao: "assinatura-teste", titulo: "Python", descricao: "Fundamentos", modulos: [
   { titulo: "Variáveis", resumo: "Tipos" }, { titulo: "Condições", resumo: "if" },
 ] };
 const modulo = { conteudo: "Conteúdo", exercicios: [{ pergunta: "Função de saída?", resposta_esperada: "print" }] };
@@ -15,6 +15,7 @@ describe("Geração em etapas", () => {
       gerarEsqueleto: async () => { chamadas.push("plano"); return plano; },
       gerarModulo: async pedido => {
         expect(pedido.geracaoId).toBe(plano.geracaoId);
+        expect(pedido.autorizacao).toBe(plano.autorizacao);
         chamadas.push(pedido.tituloModulo); return modulo;
       },
       salvar: async conteudo => {

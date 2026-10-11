@@ -14,6 +14,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      avaliacoes_temas: {
+        Row: { id: string; usuario_id: string; dia: string; vaga: number; criado_em: string }
+        Insert: { usuario_id: string; vaga: number }
+        Update: never
+        Relationships: []
+      }
       youtube_recomendacoes: {
         Row: { trilha_id: string; contexto: string; estado: string; videos: Json; criado_em: string }
         Insert: { trilha_id: string; contexto?: string }
@@ -230,6 +236,8 @@ export type Database = {
     }
     Functions: {
       reservar_geracao_trilha: { Args: Record<PropertyKey, never>; Returns: string }
+      reservar_avaliacao_tema: { Args: Record<PropertyKey, never>; Returns: number }
+      consultar_avaliacoes_hoje: { Args: Record<PropertyKey, never>; Returns: number }
       consultar_geracoes_hoje: { Args: Record<PropertyKey, never>; Returns: number }
     }
     Enums: {

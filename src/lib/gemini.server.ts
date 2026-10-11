@@ -16,6 +16,8 @@ export async function gerarJsonGemini<T>(options: {
   schema: z.ZodType<T>;
   validar: (value: T) => void;
   responseSchema: Record<string, unknown>;
+  systemInstruction?: string;
+  maxAttempts?: 1 | 2;
 }) {
   const key = process.env.GEMINI_API_KEY?.trim();
   const model = process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash-lite";
@@ -25,7 +27,8 @@ export async function gerarJsonGemini<T>(options: {
   let erroAnterior: string | undefined;
   // O prazo cobre as duas tentativas e a leitura do corpo, não apenas os headers.
   const signal = AbortSignal.timeout(90_000);
-  for (let tentativa = 0; tentativa < 2; tentativa++) {
+  const maxAttempts = options.maxAttempts ?? 2;
+  for (let tentativa = 0; tentativa < maxAttempts; tentativa++) {
     let response: Response;
     try {
       response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
@@ -33,6 +36,7 @@ export async function gerarJsonGemini<T>(options: {
         headers: { "Content-Type": "application/json", "x-goog-api-key": key },
         signal,
         body: JSON.stringify({
+          ...(options.systemInstruction ? { systemInstruction: { parts: [{ text: options.systemInstruction }] } } : {}),
           contents: [{ role: "user", parts: [{ text: options.prompt(erroAnterior) }] }],
           generationConfig: {
             responseMimeType: "application/json",
@@ -48,7 +52,7 @@ export async function gerarJsonGemini<T>(options: {
 
     // Nunca repassa o corpo de erros do provedor: pode conter informações sensíveis.
     if (!response.ok) {
-      if (tentativa === 0 && (response.status === 408 || response.status >= 500)) {
+      if (tentativa + 1 < maxAttempts && (response.status === 408 || response.status >= 500)) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         continue;
       }
@@ -80,7 +84,9 @@ export async function gerarJsonGemini<T>(options: {
       erroAnterior = "JSON incompleto ou conteúdo fora do formato solicitado";
     }
   }
-  throw new Error("O Gemini não retornou conteúdo válido após duas tentativas. Tente novamente.");
+  throw new Error(maxAttempts === 1
+    ? "O Gemini não retornou um planejamento válido. Tente novamente."
+    : "O Gemini não retornou conteúdo válido após duas tentativas. Tente novamente.");
 }
 
 const string = { type: "string" };

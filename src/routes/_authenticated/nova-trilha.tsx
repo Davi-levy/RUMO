@@ -3,9 +3,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { TriangleAlert, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { consultarLimiteDiario, gerarEsqueleto, gerarModulo } from "@/lib/trilha.functions";
-import { NIVEIS, type Nivel } from "@/lib/trilha.shared";
+import { MENSAGEM_LIMITE_AVALIACOES, MENSAGEM_TEMA_RECUSADO, NIVEIS, type Nivel } from "@/lib/trilha.shared";
 import { executarGeracaoTrilha } from "@/lib/trilha-generation";
 import { Navbar } from "@/components/Navbar";
 import { LanguageIcon } from "@/components/LanguageIcon";
@@ -35,6 +36,9 @@ function NovaTrilha() {
   const consultarLimite = useServerFn(consultarLimiteDiario);
   const [restantes, setRestantes] = useState<number | null>(null);
   const [limiteAtingido, setLimiteAtingido] = useState(false);
+  const [avaliacoesRestantes, setAvaliacoesRestantes] = useState<number | null>(null);
+  const [limiteAvaliacoes, setLimiteAvaliacoes] = useState(false);
+  const [avisoRecusa, setAvisoRecusa] = useState(false);
   const [reiniciaEm, setReiniciaEm] = useState(() => proximoReinicioDiario());
   useEffect(() => {
     let ativo = true;
@@ -43,8 +47,10 @@ function NovaTrilha() {
       void consultarLimite().then(limite => {
         if (ativo) {
           setRestantes(limite.restantes);
+          setAvaliacoesRestantes(limite.avaliacoesRestantes);
           setReiniciaEm(limite.reiniciaEm);
           if (limite.restantes > 0) setLimiteAtingido(false);
+          if (limite.avaliacoesRestantes > 0) setLimiteAvaliacoes(false);
         }
       }).catch(() => {}); // A reserva no servidor continua sendo a verificação definitiva.
     };
@@ -69,24 +75,35 @@ function NovaTrilha() {
       setLimiteAtingido(true);
       return;
     }
+    if (avaliacoesRestantes === 0 && Date.now() < reiniciaEm) {
+      setLimiteAvaliacoes(true);
+      return;
+    }
     if (!linguagem.trim()) return;
     const tema = linguagem.trim();
     const controller = new AbortController();
     geracaoAtual.current = controller;
     const { signal } = controller;
     setGerando(true);
+    setAvisoRecusa(false);
     setPassos([{ texto: "Planejando os módulos", feito: false }]);
 
     const concluir = (i: number) =>
       setPassos((p) => p.map((x, idx) => (idx === i ? { ...x, feito: true } : x)));
+    let temaAprovado = false;
 
     try {
       const limite = await consultarLimite();
       signal.throwIfAborted();
       setRestantes(limite.restantes);
+      setAvaliacoesRestantes(limite.avaliacoesRestantes);
       setReiniciaEm(limite.reiniciaEm);
       if (limite.restantes === 0) {
         setLimiteAtingido(true);
+        return;
+      }
+      if (limite.avaliacoesRestantes === 0) {
+        setLimiteAvaliacoes(true);
         return;
       }
       const { data: user, error: authError } = await supabase.auth.getUser();
@@ -96,7 +113,18 @@ function NovaTrilha() {
 
       const trilhaId = await executarGeracaoTrilha({ linguagem: tema, nivel }, {
         signal,
-        gerarEsqueleto: data => criarEsqueleto({ data }),
+        gerarEsqueleto: async data => {
+          const resultado = await criarEsqueleto({ data });
+          signal.throwIfAborted();
+          setAvaliacoesRestantes(resultado.avaliacoesRestantes);
+          if (resultado.status === "fora_do_escopo") {
+            if (resultado.avaliacoesRestantes === 0) setLimiteAvaliacoes(true);
+            else setAvisoRecusa(true);
+            throw new Error(MENSAGEM_TEMA_RECUSADO);
+          }
+          temaAprovado = true;
+          return resultado.plano;
+        },
         gerarModulo: data => criarModulo({ data }),
         onPlano: plano => setPassos([
           { texto: "Planejando os módulos", feito: true },
@@ -154,6 +182,10 @@ function NovaTrilha() {
       if (!signal.aborted) {
         if (err instanceof Error && err.message === MENSAGEM_LIMITE_DIARIO) {
           setLimiteAtingido(true);
+        } else if (err instanceof Error && err.message === MENSAGEM_LIMITE_AVALIACOES) {
+          setLimiteAvaliacoes(true);
+        } else if (err instanceof Error && err.message === MENSAGEM_TEMA_RECUSADO) {
+          // A recusa já aparece junto ao campo ou no popup de avaliações esgotadas.
         } else {
           toast.error(err instanceof Error ? err.message : "Erro ao gerar trilha");
         }
@@ -163,7 +195,11 @@ function NovaTrilha() {
         setGerando(false);
         void consultarLimite().then(limite => {
           setRestantes(limite.restantes);
+          setAvaliacoesRestantes(limite.avaliacoesRestantes);
           setReiniciaEm(limite.reiniciaEm);
+          if (!temaAprovado && limite.avaliacoesRestantes === 0 && limite.restantes > 0) {
+            setLimiteAvaliacoes(true);
+          }
         }).catch(() => {});
       }
       if (geracaoAtual.current === controller) geracaoAtual.current = null;
@@ -216,7 +252,7 @@ function NovaTrilha() {
                 Nova trilha
               </h1>
               <p className="mt-3 text-sm text-muted-foreground">
-                Diga o que você quer aprender. A IA monta os módulos, o conteúdo e os exercícios.
+                Diga o que você quer aprender sobre programação e desenvolvimento. A IA monta os módulos, o conteúdo e os exercícios.
               </p>
               <p className="mt-3 text-xs text-muted-foreground" role="status">
                 {restantes === 0
@@ -224,13 +260,31 @@ function NovaTrilha() {
                   : `Até 2 gerações por dia${restantes === null ? "" : ` · ${restantes} restante${restantes === 1 ? "" : "s"} hoje`}.`}
                 {" "}Tentativas interrompidas também contam no limite.
               </p>
+              <p className="mt-2 text-xs text-muted-foreground" role="status">
+                Até 5 avaliações de tema por dia{avaliacoesRestantes === null ? "" : ` · ${avaliacoesRestantes} restante${avaliacoesRestantes === 1 ? "" : "s"} hoje`}.
+                {" "}Temas recusados não descontam das 2 gerações.
+              </p>
 
               <form onSubmit={submit} className="mt-12 space-y-8">
                 <div>
-                  <label className="text-xs uppercase tracking-widest text-muted-foreground">
+                  <label htmlFor="trilha-tema" className="text-xs uppercase tracking-widest text-muted-foreground">
                     Linguagem ou framework
                   </label>
+                  {avisoRecusa && avaliacoesRestantes !== null && avaliacoesRestantes > 0 && (
+                    <div id="trilha-tema-recusa" role="alert" className="mt-3 flex items-start gap-3 rounded-[6px] border border-border bg-[#0d0d0d] px-4 py-3 text-sm">
+                      <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                      <p className="flex-1 leading-relaxed text-muted-foreground">
+                        Mantenha os pedidos relacionados a programação apenas! Você possui {avaliacoesRestantes} tentativa{avaliacoesRestantes === 1 ? " restante" : "s restantes"}.
+                      </p>
+                      <button type="button" aria-label="Fechar aviso de tema recusado" onClick={() => setAvisoRecusa(false)} className="cursor-pointer rounded p-1 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-foreground">
+                        <X className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
                   <input
+                    id="trilha-tema"
+                    maxLength={80}
+                    aria-describedby={avisoRecusa && (avaliacoesRestantes ?? 0) > 0 ? "trilha-tema-recusa" : undefined}
                     value={linguagem}
                     onChange={(e) => setLinguagem(e.target.value)}
                     placeholder="Ex: React, Rust, Django..."
@@ -273,7 +327,7 @@ function NovaTrilha() {
 
                 <button
                   type="submit"
-                  disabled={!linguagem.trim() && restantes !== 0}
+                  disabled={!linguagem.trim() && restantes !== 0 && avaliacoesRestantes !== 0}
                   className="w-full bg-primary text-primary-foreground py-4 text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
                 >
                   Gerar trilha com IA
@@ -285,6 +339,9 @@ function NovaTrilha() {
       </PageTransition>
       {limiteAtingido && (
         <LimiteTrilhasPopup reiniciaEm={reiniciaEm} onClose={() => setLimiteAtingido(false)} />
+      )}
+      {!limiteAtingido && limiteAvaliacoes && (
+        <LimiteTrilhasPopup tipo="avaliacoes" reiniciaEm={reiniciaEm} onClose={() => setLimiteAvaliacoes(false)} />
       )}
     </div>
   );
