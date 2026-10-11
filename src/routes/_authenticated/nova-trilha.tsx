@@ -11,9 +11,11 @@ import { executarGeracaoTrilha } from "@/lib/trilha-generation";
 import { embaralharAlternativas } from "@/lib/exercicios";
 import { Navbar } from "@/components/Navbar";
 import { LanguageIcon } from "@/components/LanguageIcon";
+import { ModeloTrilhaSelector } from "@/components/ModeloTrilhaSelector";
 import { PageTransition } from "@/components/PageTransition";
 import { GlyphMatrix } from "@/components/GlyphMatrix";
 import { LimiteTrilhasPopup } from "@/components/LimiteTrilhasPopup";
+import { CancelarTrilhaPopup } from "@/components/CancelarTrilhaPopup";
 import { MENSAGEM_LIMITE_DIARIO, proximoReinicioDiario } from "@/lib/trilha-limite";
 
 export const Route = createFileRoute("/_authenticated/nova-trilha")({
@@ -32,6 +34,8 @@ function NovaTrilha() {
   const [linguagem, setLinguagem] = useState("");
   const [nivel, setNivel] = useState<Nivel>("iniciante");
   const [gerando, setGerando] = useState(false);
+  const [confirmarCancelamento, setConfirmarCancelamento] = useState(false);
+  const [cancelando, setCancelando] = useState(false);
   const [passos, setPassos] = useState<{ texto: string; feito: boolean }[]>([]);
   const criarEsqueleto = useServerFn(gerarEsqueleto);
   const criarModulo = useServerFn(gerarModulo);
@@ -68,7 +72,17 @@ function NovaTrilha() {
   }, [consultarLimite]);
   const navigate = useNavigate();
   const geracaoAtual = useRef<AbortController | null>(null);
-  useEffect(() => () => geracaoAtual.current?.abort(), []);
+  const montado = useRef(true);
+  useEffect(() => {
+    montado.current = true;
+    return () => { montado.current = false; geracaoAtual.current?.abort(); };
+  }, []);
+
+  function cancelarGeracao() {
+    setConfirmarCancelamento(false);
+    setCancelando(true);
+    geracaoAtual.current?.abort();
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -87,12 +101,14 @@ function NovaTrilha() {
     geracaoAtual.current = controller;
     const { signal } = controller;
     setGerando(true);
+    setCancelando(false);
     setAvisoRecusa(false);
     setPassos([{ texto: "Planejando os módulos", feito: false }]);
 
     const concluir = (i: number) =>
       setPassos((p) => p.map((x, idx) => (idx === i ? { ...x, feito: true } : x)));
     let temaAprovado = false;
+    let falhaLimpeza = false;
 
     try {
       const limite = await consultarLimite();
@@ -171,6 +187,7 @@ function NovaTrilha() {
               const { data: removidas, error: cleanupError } = await supabase.from("trilhas")
                 .delete().eq("id", id).eq("usuario_id", userId).select("id");
               if (cleanupError || !removidas?.length) {
+                falhaLimpeza = true;
                 throw new Error("Falha ao salvar a trilha. Também não foi possível remover os dados incompletos.");
               }
             }
@@ -183,7 +200,7 @@ function NovaTrilha() {
       toast.success("Trilha criada!");
       await navigate({ to: "/trilha/$trilhaId", params: { trilhaId } });
     } catch (err) {
-      if (!signal.aborted) {
+      if (montado.current && (!signal.aborted || falhaLimpeza)) {
         if (err instanceof Error && err.message === MENSAGEM_LIMITE_DIARIO) {
           setLimiteAtingido(true);
         } else if (err instanceof Error && err.message === MENSAGEM_LIMITE_AVALIACOES) {
@@ -195,13 +212,17 @@ function NovaTrilha() {
         }
       }
     } finally {
-      if (!signal.aborted) {
+      if (montado.current && geracaoAtual.current === controller) {
         setGerando(false);
+        setCancelando(false);
+        setConfirmarCancelamento(false);
+        if (signal.aborted && !falhaLimpeza) toast.info("Geração cancelada.");
         void consultarLimite().then(limite => {
+          if (!montado.current || geracaoAtual.current) return;
           setRestantes(limite.restantes);
           setAvaliacoesRestantes(limite.avaliacoesRestantes);
           setReiniciaEm(limite.reiniciaEm);
-          if (!temaAprovado && limite.avaliacoesRestantes === 0 && limite.restantes > 0) {
+          if (!signal.aborted && !temaAprovado && limite.avaliacoesRestantes === 0 && limite.restantes > 0) {
             setLimiteAvaliacoes(true);
           }
         }).catch(() => {});
@@ -251,6 +272,10 @@ function NovaTrilha() {
                   </li>
                 ))}
               </ul>
+              <button type="button" disabled={cancelando} onClick={() => setConfirmarCancelamento(true)}
+                className="mt-10 w-full cursor-pointer bg-primary py-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-wait disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground">
+                {cancelando ? "Cancelando…" : "Cancelar Trilha"}
+              </button>
             </div>
 
           ) : (
@@ -288,15 +313,20 @@ function NovaTrilha() {
                       </button>
                     </div>
                   )}
-                  <input
+                  <div className="mt-3 border border-border bg-black/40 transition-colors focus-within:border-foreground">
+                    <input
                     id="trilha-tema"
                     maxLength={80}
                     aria-describedby={avisoRecusa && (avaliacoesRestantes ?? 0) > 0 ? "trilha-tema-recusa" : undefined}
                     value={linguagem}
                     onChange={(e) => setLinguagem(e.target.value)}
                     placeholder="Ex: O Que você quer aprender?"
-                    className="mt-3 w-full border border-border bg-transparent px-4 py-3 text-sm outline-none focus:border-foreground transition-colors"
+                    className="w-full bg-transparent px-4 py-3 text-sm outline-none"
                   />
+                    <div className="px-4 pb-3 pt-1">
+                      <ModeloTrilhaSelector />
+                    </div>
+                  </div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {sugestoes.map((s) => (
                       <button
@@ -344,6 +374,9 @@ function NovaTrilha() {
           )}
         </main>
       </PageTransition>
+      {gerando && confirmarCancelamento && (
+        <CancelarTrilhaPopup onClose={() => setConfirmarCancelamento(false)} onConfirm={cancelarGeracao} />
+      )}
       {limiteAtingido && (
         <LimiteTrilhasPopup reiniciaEm={reiniciaEm} onClose={() => setLimiteAtingido(false)} />
       )}

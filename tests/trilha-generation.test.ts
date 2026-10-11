@@ -9,6 +9,52 @@ const modulo = { conteudo: "Conteúdo", exercicios: [{ tipo: "previsao_saida" as
 const tema = { linguagem: "Python", nivel: "iniciante" as const };
 
 describe("Geração em etapas", () => {
+  test("cancelar o planejamento ignora a resposta atrasada e não inicia módulos", async () => {
+    const controller = new AbortController();
+    let responder!: (value: typeof plano) => void;
+    let iniciou!: () => void;
+    const inicio = new Promise<void>(resolve => { iniciou = resolve; });
+    const chamadas: string[] = [];
+    const geracao = executarGeracaoTrilha(tema, {
+      signal: controller.signal,
+      gerarEsqueleto: () => { iniciou(); return new Promise(resolve => { responder = resolve; }); },
+      gerarModulo: async () => { chamadas.push("modulo"); return modulo; },
+      salvar: async () => { chamadas.push("salvar"); return "id"; },
+      onPlano: () => chamadas.push("plano"), onModulo: () => chamadas.push("progresso"),
+    });
+    const rejeicao = geracao.catch(error => error);
+    await inicio;
+    controller.abort();
+    expect(await rejeicao).toBeInstanceOf(DOMException);
+    responder(plano);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(chamadas).toEqual([]);
+  });
+
+  test("cancelar um módulo ignora seu resultado e impede os próximos módulos e o salvamento", async () => {
+    const controller = new AbortController();
+    let responder!: (value: typeof modulo) => void;
+    let iniciou!: () => void;
+    const inicio = new Promise<void>(resolve => { iniciou = resolve; });
+    let pedidos = 0;
+    let salvou = false;
+    let concluidos = 0;
+    const geracao = executarGeracaoTrilha(tema, {
+      signal: controller.signal, gerarEsqueleto: async () => plano,
+      gerarModulo: () => { pedidos++; iniciou(); return new Promise(resolve => { responder = resolve; }); },
+      salvar: async () => { salvou = true; return "id"; },
+      onPlano: () => {}, onModulo: () => { concluidos++; },
+    });
+    const rejeicao = geracao.catch(error => error);
+    await inicio;
+    controller.abort();
+    expect(await rejeicao).toBeInstanceOf(DOMException);
+    responder(modulo);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(pedidos).toBe(1);
+    expect(concluidos).toBe(0);
+    expect(salvou).toBe(false);
+  });
   test("gera todos os módulos em ordem antes de salvar qualquer trilha", async () => {
     const chamadas: string[] = [];
     const id = await executarGeracaoTrilha(tema, {

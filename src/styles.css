@@ -346,7 +346,7 @@
 
 .account-menu-item:not(:disabled):hover,
 .account-menu-item:focus-visible {
-  background-color: rgb(255 255 255 / 0.06);
+  background-color: rgba(10, 10, 10, 0.808);
   color: var(--color-foreground);
 }
 
