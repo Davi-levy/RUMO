@@ -7,6 +7,7 @@ import { isAuthError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { LegalLinks } from "@/components/LegalPage";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -31,12 +32,12 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [enviando, setEnviando] = useState(false);
-  const { user, loading } = useAuth();
+  const { user, loading, recovery } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/dashboard", replace: true });
-  }, [user, loading, navigate]);
+    if (!loading && user) navigate({ to: recovery ? "/redefinir-senha" : "/dashboard", replace: true });
+  }, [user, loading, recovery, navigate]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -81,14 +82,6 @@ function AuthPage() {
     } finally {
       setEnviando(false);
     }
-  }
-
-  async function google() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: window.location.origin },
-    });
-    if (error) toast.error(error.message);
   }
 
   return (
@@ -155,12 +148,7 @@ function AuthPage() {
             <div className="h-px flex-1 bg-border" />
           </div>
 
-          <button
-            onClick={google}
-            className="w-full border border-border py-3 text-sm font-medium hover:bg-muted transition-colors"
-          >
-            Teste de auth google  
-          </button>
+          <GoogleSignInButton disabled={enviando} onBusyChange={setEnviando} />
 
           <button
             onClick={() => setModo(modo === "entrar" ? "criar" : "entrar")}
