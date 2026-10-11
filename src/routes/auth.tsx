@@ -120,9 +120,9 @@ function AuthPage() {
             <section role="note" aria-labelledby="novidade-google-titulo" className="mb-6 flex items-start gap-3 rounded-[10px] border border-border bg-card p-4">
               <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <div className="min-w-0">
-                <h2 id="novidade-google-titulo" className="text-sm font-semibold">Novo: entrar usando Google</h2>
+                <h2 id="novidade-google-titulo" className="text-sm font-semibold">Novo: entrar usando o Google</h2>
                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                  Agora você pode entrar ou criar sua conta de forma mais fácil usando sua conta do Google!
+                  Agora você pode entrar ou criar sua conta de forma mais fácil usando sua conta do Google no site!!
                 </p>
               </div>
             </section>
