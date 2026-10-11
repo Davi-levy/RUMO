@@ -13,7 +13,7 @@ export default defineConfig({
     tsconfigPaths(),
     tailwindcss(),
     tanstackStart(),
-    nitro({ preset: "node-server" }),
+    nitro({ preset: process.env.VERCEL === "1" ? "vercel" : "node-server" }),
     react(),
   ],
 });
