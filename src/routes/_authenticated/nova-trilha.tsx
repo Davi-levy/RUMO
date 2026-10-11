@@ -294,7 +294,7 @@ function NovaTrilha() {
                     aria-describedby={avisoRecusa && (avaliacoesRestantes ?? 0) > 0 ? "trilha-tema-recusa" : undefined}
                     value={linguagem}
                     onChange={(e) => setLinguagem(e.target.value)}
-                    placeholder="Ex: React, Rust, Django..."
+                    placeholder="Ex: O Que você quer aprender?"
                     className="mt-3 w-full border border-border bg-transparent px-4 py-3 text-sm outline-none focus:border-foreground transition-colors"
                   />
                   <div className="mt-3 flex flex-wrap gap-2">
