@@ -5,10 +5,10 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { TriangleAlert, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { consultarLimiteDiario, gerarEsqueleto, gerarModulo } from "@/lib/trilha.functions";
+import { consultarLimiteDiario, gerarEsqueleto, gerarModulo, salvarTrilhaGerada } from "@/lib/trilha.functions";
 import { MENSAGEM_LIMITE_AVALIACOES, MENSAGEM_TEMA_RECUSADO, NIVEIS, type Nivel } from "@/lib/trilha.shared";
 import { executarGeracaoTrilha } from "@/lib/trilha-generation";
-import { embaralharAlternativas } from "@/lib/exercicios";
+
 import { Navbar } from "@/components/Navbar";
 import { LanguageIcon } from "@/components/LanguageIcon";
 import { ModeloTrilhaSelector } from "@/components/ModeloTrilhaSelector";
@@ -39,6 +39,7 @@ function NovaTrilha() {
   const [passos, setPassos] = useState<{ texto: string; feito: boolean }[]>([]);
   const criarEsqueleto = useServerFn(gerarEsqueleto);
   const criarModulo = useServerFn(gerarModulo);
+  const salvarGeracao = useServerFn(salvarTrilhaGerada);
   const consultarLimite = useServerFn(consultarLimiteDiario);
   const [restantes, setRestantes] = useState<number | null>(null);
   const [limiteAtingido, setLimiteAtingido] = useState(false);
@@ -151,48 +152,19 @@ function NovaTrilha() {
         ]),
         onModulo: i => concluir(i + 1),
         salvar: async ({ esqueleto, modulos }) => {
-          let id: string | undefined;
-          try {
-            signal.throwIfAborted();
-            const { data: trilha, error } = await supabase.from("trilhas").insert({
-              usuario_id: userId, linguagem: tema, nivel,
-              titulo: esqueleto.titulo, descricao: esqueleto.descricao,
-            }).select("id").single();
-            if (error || !trilha) throw new Error(error?.message ?? "Falha ao salvar a trilha.");
-            id = trilha.id;
-            signal.throwIfAborted();
-
-            for (const [i, item] of modulos.entries()) {
-              const { data: modulo, error: errModulo } = await supabase.from("modulos").insert({
-                trilha_id: id, titulo: item.titulo, conteudo: item.gerado.conteudo, ordem: i,
-              }).select("id").single();
-              if (errModulo || !modulo) throw new Error(errModulo?.message ?? "Falha ao salvar o módulo.");
-              signal.throwIfAborted();
-              const { error: errEx } = await supabase.from("exercicios").insert(
-                item.gerado.exercicios.map((ex, j) => ({
-                  tipo: ex.tipo,
-                  alternativas: ex.tipo === "multipla_escolha" ? embaralharAlternativas(ex.alternativas) : null,
-                  modulo_id: modulo.id, pergunta: ex.pergunta, resposta_esperada: ex.resposta_esperada,
-                  dica: ex.dica ?? null, explicacao: ex.explicacao ?? null, ordem: j,
-                })),
-              );
-              if (errEx) throw new Error(errEx.message);
-              signal.throwIfAborted();
+          const id = await salvarGeracao({ data: { geracaoId: esqueleto.geracaoId,
+            autorizacao: esqueleto.autorizacao, modulos: modulos.map(m => m.gerado) } });
+          if (signal.aborted) {
+            const { data: removidas, error } = await supabase.from("trilhas").delete()
+              .eq("id", id).eq("usuario_id", userId).select("id");
+            if (error || !removidas?.length) {
+              falhaLimpeza = true;
+              throw new Error("Não foi possível remover a trilha cancelada.");
             }
-            concluir(modulos.length + 1);
-            return id;
-          } catch (error) {
-            if (id) {
-              // RLS restringe a exclusão ao dono; o banco remove módulos e exercícios em cascata.
-              const { data: removidas, error: cleanupError } = await supabase.from("trilhas")
-                .delete().eq("id", id).eq("usuario_id", userId).select("id");
-              if (cleanupError || !removidas?.length) {
-                falhaLimpeza = true;
-                throw new Error("Falha ao salvar a trilha. Também não foi possível remover os dados incompletos.");
-              }
-            }
-            throw error;
+            signal.throwIfAborted();
           }
+          concluir(modulos.length + 1);
+          return id;
         },
       });
 

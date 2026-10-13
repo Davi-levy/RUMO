@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { corrigir, corrigirObjetivo, type Correcao } from "@/lib/correcao";
+import type { Correcao } from "@/lib/correcao";
+import { responderExercicio, revelarSolucao } from "@/lib/exercicio.functions";
 import { AlternativaSchema, type Alternativa, type TipoExercicio } from "@/lib/exercicios";
 import { z } from "zod";
 import { Markdown } from "@/components/Markdown";
@@ -18,9 +20,7 @@ export const Route = createFileRoute("/_authenticated/exercicio/$id")({
 interface Ex {
   id: string;
   pergunta: string;
-  resposta_esperada: string;
   dica: string | null;
-  explicacao: string | null;
   modulo_id: string;
   tipo: TipoExercicio;
   alternativas: Alternativa[] | null;
@@ -37,6 +37,10 @@ function ExercicioPage() {
   const [enviando, setEnviando] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [mostrarSolucao, setMostrarSolucao] = useState(false);
+  const [solucao, setSolucao] = useState<{ solucao: string; explicacao: string | null } | null>(null);
+  const [revelando, setRevelando] = useState(false);
+  const corrigirResposta = useServerFn(responderExercicio);
+  const buscarSolucao = useServerFn(revelarSolucao);
 
   useEffect(() => {
     let ativo = true;
@@ -46,11 +50,12 @@ function ExercicioPage() {
     setCorrecao(null);
     setMostrarDica(false);
     setMostrarSolucao(false);
+    setSolucao(null);
     (async () => {
       try {
       const { data, error } = await supabase
         .from("exercicios")
-        .select("id, pergunta, resposta_esperada, dica, explicacao, modulo_id, tipo, alternativas")
+        .select("id, pergunta, dica, modulo_id, tipo, alternativas")
         .eq("id", id)
         .maybeSingle();
       if (!ativo) return;
@@ -79,7 +84,7 @@ function ExercicioPage() {
             resultado: anterior.acertou ? "acertou" : "errou",
             acertou: anterior.acertou,
             score: anterior.acertou ? 1 : 0,
-            feedback: data.tipo === "legado" ? anterior.feedback ?? "" : corrigirObjetivo(anterior.resposta, { tipo: data.tipo, resposta_esperada: data.resposta_esperada, dica: data.dica, explicacao: data.explicacao }).feedback,
+            feedback: anterior.feedback ?? "",
           });
         }
       }
@@ -94,26 +99,21 @@ function ExercicioPage() {
     if (!ex || !resposta.trim() || enviando || (ex.tipo === "multipla_escolha" && !ex.alternativas)) return;
     setEnviando(true);
     setMostrarSolucao(false);
-    const res = ex.tipo === "legado" ? corrigir(resposta, ex.resposta_esperada, ex.explicacao)
-      : corrigirObjetivo(resposta, { ...ex, tipo: ex.tipo });
-    setCorrecao(res);
     try {
-    const { data: user } = await supabase.auth.getUser();
-    if (user.user) {
-      const { error } = await supabase.from("respostas").upsert(
-        {
-          usuario_id: user.user.id,
-          exercicio_id: ex.id,
-          resposta,
-          acertou: res.acertou,
-          feedback: res.feedback,
-        },
-        { onConflict: "usuario_id,exercicio_id" },
-      );
-      if (error) toast.error("Não foi possível salvar seu progresso.");
-    } else toast.error("Sessão expirada. Não foi possível salvar seu progresso.");
-    } catch { toast.error("Não foi possível salvar seu progresso."); }
+      const resultado = await corrigirResposta({ data: { id: ex.id, resposta } });
+      setCorrecao(resultado);
+    } catch { toast.error("Não foi possível corrigir e salvar sua resposta. Tente novamente."); }
     finally { setEnviando(false); }
+  }
+
+  async function verSolucao() {
+    if (!ex || revelando) return;
+    setRevelando(true);
+    try {
+      setSolucao(await buscarSolucao({ data: { id: ex.id } }));
+      setMostrarSolucao(true);
+    } catch { toast.error("Não foi possível carregar a solução."); }
+    finally { setRevelando(false); }
   }
 
   return (
@@ -174,6 +174,8 @@ function ExercicioPage() {
                   value={resposta}
                   onChange={(e) => setResposta(e.target.value)}
                   rows={ex.tipo === "previsao_saida" ? 2 : 5}
+                  maxLength={6000}
+                  disabled={enviando}
                   placeholder={ex.tipo === "previsao_saida" ? "Digite a saída exata, preservando letras e símbolos..." : "Sua resposta..."}
                   className="w-full border border-border bg-transparent px-4 py-3 font-display text-sm outline-none focus:border-foreground transition-colors resize-none"
                 />
@@ -203,11 +205,11 @@ function ExercicioPage() {
                   </p>
                   <p className="mt-4 text-sm leading-relaxed whitespace-pre-wrap">{correcao.feedback}</p>
                   {ex.tipo !== "legado" && !correcao.acertou && (
-                    mostrarSolucao ? <div className="mt-6 text-sm">
+                    mostrarSolucao && solucao ? <div className="mt-6 text-sm">
                       <p className="font-medium">Solução</p>
-                      <pre className="mt-3 whitespace-pre-wrap break-words font-mono text-sm">{ex.tipo === "multipla_escolha" ? ex.alternativas?.find(a => a.id === ex.resposta_esperada)?.texto ?? "Solução indisponível." : ex.resposta_esperada}</pre>
-                      {ex.explicacao && <p className="mt-3 leading-relaxed whitespace-pre-wrap">{ex.explicacao}</p>}
-                    </div> : <button type="button" onClick={() => setMostrarSolucao(true)} className="mt-6 cursor-pointer text-xs underline underline-offset-4 hover:opacity-70">Ver solução</button>
+                      <pre className="mt-3 whitespace-pre-wrap break-words font-mono text-sm">{solucao.solucao}</pre>
+                      {solucao.explicacao && <p className="mt-3 leading-relaxed whitespace-pre-wrap">{solucao.explicacao}</p>}
+                    </div> : <button type="button" disabled={revelando || enviando} onClick={verSolucao} className="mt-6 cursor-pointer text-xs underline underline-offset-4 hover:opacity-70 disabled:opacity-40">{revelando ? "Carregando solução…" : "Ver solução"}</button>
                   )}
                   {correcao.acertou && trilhaId && (
                     <Link

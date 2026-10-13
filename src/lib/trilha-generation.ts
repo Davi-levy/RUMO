@@ -7,9 +7,9 @@ type PedidoModulo = Tema & {
   autorizacao: string;
   tituloTrilha: string; tituloModulo: string; resumoModulo: string; posicao: number; total: number;
 };
-export type ConteudoTrilha = {
-  esqueleto: Esqueleto;
-  modulos: { titulo: string; gerado: ModuloGerado }[];
+export type ConteudoTrilha<T = ModuloGerado> = {
+  esqueleto: Esqueleto & { geracaoId: string; autorizacao: string };
+  modulos: { titulo: string; gerado: T }[];
 };
 
 async function aguardar<T>(operation: () => Promise<T>, signal: AbortSignal, titulo: string) {
@@ -31,18 +31,18 @@ async function aguardar<T>(operation: () => Promise<T>, signal: AbortSignal, tit
   }
 }
 
-export async function executarGeracaoTrilha(tema: Tema, options: {
+export async function executarGeracaoTrilha<T = ModuloGerado>(tema: Tema, options: {
   signal: AbortSignal;
   gerarEsqueleto: (tema: Tema) => Promise<Esqueleto & { geracaoId: string; autorizacao: string }>;
-  gerarModulo: (pedido: PedidoModulo) => Promise<ModuloGerado>;
-  salvar: (conteudo: ConteudoTrilha) => Promise<string>;
+  gerarModulo: (pedido: PedidoModulo) => Promise<T>;
+  salvar: (conteudo: ConteudoTrilha<T>) => Promise<string>;
   onPlano: (plano: Esqueleto) => void;
   onModulo: (indice: number) => void;
 }) {
   const esqueleto = await aguardar(() => options.gerarEsqueleto(tema), options.signal, "planejamento");
   options.signal.throwIfAborted();
   options.onPlano(esqueleto);
-  const modulos: ConteudoTrilha["modulos"] = [];
+  const modulos: ConteudoTrilha<T>["modulos"] = [];
   for (const [i, plano] of esqueleto.modulos.entries()) {
     const gerado = await aguardar(() => options.gerarModulo({
       geracaoId: esqueleto.geracaoId,

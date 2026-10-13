@@ -247,6 +247,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      avaliar_exercicio: { Args: { p_exercicio_id: string; p_resposta?: string; p_revelar?: boolean }; Returns: Json }
       reservar_geracao_trilha: { Args: Record<PropertyKey, never>; Returns: string }
       reservar_avaliacao_tema: { Args: Record<PropertyKey, never>; Returns: number }
       consultar_avaliacoes_hoje: { Args: Record<PropertyKey, never>; Returns: number }
