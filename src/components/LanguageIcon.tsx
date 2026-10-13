@@ -3,7 +3,7 @@ import { getTechnology } from "@/lib/tech-icons";
 
 export function LanguageIcon({ language, originalColors = false }: { language: string; originalColors?: boolean }) {
   const technology = getTechnology(language);
-  if (!technology) return null;
+  if (!technology || !technology.icon) return null;
 
   if (technology.icon === "database") {
     return <Database className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;

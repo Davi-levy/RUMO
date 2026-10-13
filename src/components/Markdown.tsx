@@ -1,7 +1,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { isValidElement, type ReactNode } from "react";
+import { CodeBlock } from "./CodeBlock";
 
 export function Markdown({ children }: { children: string }) {
   return (
@@ -9,32 +9,10 @@ export function Markdown({ children }: { children: string }) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          code({ className, children, ...props }) {
-            const match = /language-(\w+)/.exec(className ?? "");
-            const texto = String(children).replace(/\n$/, "");
-            if (!match) {
-              return (
-                <code className={className} {...props}>
-                  {children}
-                </code>
-              );
-            }
-            return (
-              <SyntaxHighlighter
-                language={match[1]}
-                style={vscDarkPlus}
-                customStyle={{
-                  background: "var(--card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "2px",
-                  fontSize: "0.8rem",
-                  margin: 0,
-                }}
-                codeTagProps={{ style: { fontFamily: "var(--font-mono)" } }}
-              >
-                {texto}
-              </SyntaxHighlighter>
-            );
+          pre({ children }) {
+            if (!isValidElement<{ className?: string; children?: ReactNode }>(children)) return <pre>{children}</pre>;
+            const language = /language-([^\s]+)/.exec(children.props.className ?? "")?.[1];
+            return <CodeBlock code={String(children.props.children ?? "").replace(/\n$/, "")} language={language} />;
           },
         }}
       >
