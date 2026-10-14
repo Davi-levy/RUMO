@@ -7,6 +7,7 @@ import { Markdown } from "@/components/Markdown";
 import { TechnologyBadge } from "@/components/TechnologyBadge";
 import { TrilhaVideos } from "@/components/TrilhaVideos";
 import { TrilhaMenu, type ItemMenuTrilha } from "@/components/TrilhaMenu";
+import { TutorAtlas } from "@/components/TutorAtlas";
 
 const VIDEOS = "videos";
 
@@ -181,6 +182,7 @@ function TrilhaPage() {
                             Módulo {posicao + 1} de {modulos.length}
                           </p>
                           <h2 className="mt-3 font-display text-3xl font-bold">{moduloAtivo.titulo}</h2>
+                          <TutorAtlas key={moduloAtivo.id} moduloId={moduloAtivo.id} titulo={moduloAtivo.titulo} />
 
                           <div className="mt-8">
                             <Markdown>{moduloAtivo.conteudo}</Markdown>
