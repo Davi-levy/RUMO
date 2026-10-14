@@ -18,6 +18,8 @@ export async function gerarJsonGemini<T>(options: {
   responseSchema: Record<string, unknown>;
   systemInstruction?: string;
   maxAttempts?: 1 | 2;
+  maxOutputTokens?: number;
+  timeoutMs?: number;
 }) {
   const key = process.env.GEMINI_API_KEY?.trim();
   const model = process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash-lite";
@@ -26,7 +28,7 @@ export async function gerarJsonGemini<T>(options: {
 
   let erroAnterior: string | undefined;
   // O prazo cobre as duas tentativas e a leitura do corpo, não apenas os headers.
-  const signal = AbortSignal.timeout(90_000);
+  const signal = AbortSignal.timeout(options.timeoutMs ?? 90_000);
   const maxAttempts = options.maxAttempts ?? 2;
   for (let tentativa = 0; tentativa < maxAttempts; tentativa++) {
     let response: Response;
@@ -41,7 +43,7 @@ export async function gerarJsonGemini<T>(options: {
           generationConfig: {
             responseMimeType: "application/json",
             responseJsonSchema: options.responseSchema,
-            maxOutputTokens: 8192,
+            maxOutputTokens: options.maxOutputTokens ?? 8192,
             ...(model.startsWith("gemini-3") ? { thinkingConfig: { thinkingLevel: "LOW" } } : {}),
           },
         }),
