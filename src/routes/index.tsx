@@ -134,15 +134,14 @@ function Index() {
               <p className="text-muted-foreground leading-relaxed max-w-md">
                 Seu avanço fica salvo na sua conta, trilha por trilha.
               </p>
-               <div className="mt-8 h-2 w-full bg-secondary rounded-full overflow-hidden relative">
-             <div className="h-full w-[62%] bg-foreground rounded-full relative overflow-hidden">
-           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
-           </div>
-       </div>
-            <div className="mt-3 flex justify-between font-mono text-xs text-muted-foreground">
-             <span>Progresso da Trilha</span>
-             <span className="font-bold text-foreground">62% concluído</span>
-             </div>
+              <div className="mt-8 h-2 w-full bg-secondary rounded-full overflow-hidden relative">
+                <div className="h-full w-[62%] bg-foreground rounded-full relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
+                </div>
+              </div>
+              <div className="mt-3 flex justify-between font-mono text-xs text-muted-foreground">
+                <span>Progresso da Trilha</span>
+                <span className="font-bold text-foreground">62% concluído</span>
               </div>
             </div>
           </div>
