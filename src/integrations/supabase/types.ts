@@ -14,6 +14,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      tutor_interacoes: {
+        Row: { id: string; usuario_id: string; modulo_id: string | null; pergunta: string; resposta: string | null; estado: string; avaliacao: number | null; criado_em: string; dia: string }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
       relatos_exercicios: {
         Row: { id: string; usuario_id: string; exercicio_id: string; observacao: string | null; criado_em: string }
         Insert: { usuario_id: string; exercicio_id: string; observacao?: string | null }
@@ -247,6 +253,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consultar_tutor_hoje: { Args: Record<PropertyKey, never>; Returns: number }
+      tutor_operacao: { Args: { p_id: string; p_modulo?: string; p_pergunta?: string; p_resposta?: string; p_segredo: string; p_concluir?: boolean }; Returns: Json }
+      avaliar_tutor: { Args: { p_id: string; p_avaliacao: number }; Returns: undefined }
       avaliar_exercicio: { Args: { p_exercicio_id: string; p_resposta?: string; p_revelar?: boolean }; Returns: Json }
       reservar_geracao_trilha: { Args: Record<PropertyKey, never>; Returns: string }
       reservar_avaliacao_tema: { Args: Record<PropertyKey, never>; Returns: number }
