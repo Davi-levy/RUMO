@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { MessageCircle, Send, ThumbsDown, ThumbsUp, X } from "lucide-react";
+import { MessageCircle, Mic, Square, Send, ThumbsDown, ThumbsUp, X } from "lucide-react";
 import { toast } from "sonner";
 import { consultarTutor, perguntarTutor, avaliarTutor } from "@/lib/tutor.functions";
 import type { CursorTutor, InteracaoTutor } from "@/lib/tutor.shared";
 import { formatarTempoLimite, proximoReinicioDiario } from "@/lib/trilha-limite";
 import { Markdown } from "./Markdown";
+import { useDitado } from "@/hooks/useDitado";
 
 export function TutorAtlas({ moduloId, titulo }: { moduloId: string; titulo: string }) {
   const [aberto, setAberto] = useState(false);
@@ -23,6 +24,15 @@ function ConversaAtlas({ moduloId, titulo, onClose }: { moduloId: string; titulo
   const ativo = useRef(true);
   const [itens, setItens] = useState<InteracaoTutor[]>([]);
   const [texto, setTexto] = useState("");
+  const textoAtual = useRef(texto);
+  textoAtual.current = texto;
+  const ditado = useDitado(transcricao => {
+    const anterior = textoAtual.current;
+    const proximo = `${anterior}${anterior && !/\s$/.test(anterior) ? " " : ""}${transcricao}`;
+    if (proximo.length > 1500) { ditado.parar(); toast.info("O limite da pergunta é de 1.500 caracteres."); }
+    textoAtual.current = proximo.slice(0, 1500);
+    setTexto(textoAtual.current);
+  });
   const [restantes, setRestantes] = useState<number | null>(null);
   const [reiniciaEm, setReiniciaEm] = useState(proximoReinicioDiario);
   const [agora, setAgora] = useState(Date.now);
@@ -68,7 +78,7 @@ function ConversaAtlas({ moduloId, titulo, onClose }: { moduloId: string; titulo
 
   async function perguntar(event: React.FormEvent) {
     event.preventDefault();
-    if (!texto.trim() || pendente || carregando || erro || restantes === null || (restantes === 0 && agora < reiniciaEm)) return;
+    if (!texto.trim() || ditado.ouvindo || pendente || carregando || erro || restantes === null || (restantes === 0 && agora < reiniciaEm)) return;
     const pergunta = texto.trim();
     const id = crypto.randomUUID();
     setEnviando(true); setTexto("");
@@ -123,7 +133,15 @@ function ConversaAtlas({ moduloId, titulo, onClose }: { moduloId: string; titulo
         <textarea id="atlas-pergunta" value={texto} onChange={e => setTexto(e.target.value)} maxLength={1500} rows={3} placeholder="Não entendi esse exemplo…"
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }}
           className="w-full resize-none rounded-[3px] border border-border bg-black px-3 py-3 text-sm outline-none focus:border-foreground" />
-        <div className="mt-2 flex items-center justify-between gap-3"><span className="text-[10px] text-muted-foreground">{texto.length}/1500 · Powered by Gemini</span><button type="submit" disabled={pendente || carregando || erro || restantes === null || !texto.trim() || (restantes === 0 && agora < reiniciaEm)} className="inline-flex cursor-pointer items-center gap-2 bg-primary px-4 py-2 text-xs text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"><Send className="h-3.5 w-3.5" aria-hidden="true" />Enviar</button></div>
+        <div className="mt-2 flex items-center justify-between gap-3"><span className="text-[10px] text-muted-foreground">{texto.length}/1500 · Powered by Gemini</span><div className="flex shrink-0 gap-2">
+          <button type="button" onClick={ditado.alternar} disabled={!ditado.suportado || pendente} aria-pressed={ditado.ouvindo} aria-label={ditado.ouvindo ? "Parar ditado" : "Ditar pergunta"}
+            title={ditado.suportado ? "Transcrição pelo navegador; pode utilizar um serviço externo de voz." : "Ditado indisponível neste navegador. Digite sua pergunta."}
+            className={`cursor-pointer rounded-[3px] border p-2 transition-colors hover:border-foreground disabled:cursor-not-allowed disabled:opacity-40 ${ditado.ouvindo ? "border-red-400 text-red-400" : "border-border text-muted-foreground"}`}>
+            {ditado.ouvindo ? <Square className="h-4 w-4" aria-hidden="true" /> : <Mic className="h-4 w-4" aria-hidden="true" />}
+          </button>
+          <button type="submit" disabled={ditado.ouvindo || pendente || carregando || erro || restantes === null || !texto.trim() || (restantes === 0 && agora < reiniciaEm)} className="inline-flex cursor-pointer items-center gap-2 bg-primary px-4 py-2 text-xs text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"><Send className="h-3.5 w-3.5" aria-hidden="true" />Enviar</button>
+        </div></div>
+        {ditado.ouvindo && <p role="status" className="mt-2 text-xs text-muted-foreground">Ouvindo… Pare o ditado e revise o texto antes de enviar.</p>}
       </form>
     </section>
   </dialog>;
