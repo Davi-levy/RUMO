@@ -22,6 +22,7 @@ function ConversaAtlas({ moduloId, titulo, onClose }: { moduloId: string; titulo
   const dialog = useRef<HTMLDialogElement>(null);
   const fim = useRef<HTMLDivElement>(null);
   const ativo = useRef(true);
+  const atualizando = useRef(false);
   const [itens, setItens] = useState<InteracaoTutor[]>([]);
   const [texto, setTexto] = useState("");
   const textoAtual = useRef(texto);
@@ -47,6 +48,8 @@ function ConversaAtlas({ moduloId, titulo, onClose }: { moduloId: string; titulo
   const pendente = enviando || itens.some(i => i.estado === "pendente" && Date.parse(i.criado_em) + 120_000 > agora);
 
   async function atualizar(anteriores = false, manterHistorico = false) {
+    if (atualizando.current) return;
+    atualizando.current = true;
     try {
       const data = await ler({ data: { moduloId, ...(anteriores && cursor ? { cursor } : {}) } });
       if (!ativo.current) return;
@@ -55,7 +58,7 @@ function ConversaAtlas({ moduloId, titulo, onClose }: { moduloId: string; titulo
       if (!manterHistorico) setCursor(data.cursor);
       setRestantes(data.restantes); setReiniciaEm(data.reiniciaEm); setErro(false);
     } catch { if (ativo.current) setErro(true); }
-    finally { if (ativo.current) setCarregando(false); }
+    finally { atualizando.current = false; if (ativo.current) setCarregando(false); }
   }
 
   useEffect(() => {

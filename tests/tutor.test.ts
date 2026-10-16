@@ -1,6 +1,6 @@
-import { afterEach, expect, test } from "bun:test";
+import { afterEach, expect, spyOn, test } from "bun:test";
 import { montarContextoTutor, POLITICA_TUTOR } from "../src/lib/tutor.shared";
-import { enviarTutor } from "../src/lib/tutor.server";
+import { carregarTutor, enviarTutor } from "../src/lib/tutor.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../src/integrations/supabase/types";
 
@@ -73,4 +73,38 @@ test("falha após reserva é gravada e não repete chamada; limite não chama Ge
   expect(calls.some(c => (c.args as { p_concluir?: boolean })?.p_concluir)).toBe(true);
   const bloqueado = mockDb({ erro: "TUTOR_LIMITE" });
   expect((await enviarTutor(bloqueado.db, id, { id, moduloId: id, pergunta: "Dúvida" }, async () => { throw new Error("Não deveria chamar"); })).status).toBe("limite");
+});
+
+test("diagnóstico de falha não registra pergunta, erro do provedor nem credenciais", async () => {
+  process.env.TUTOR_SERVER_SECRET = "segredo-de-teste-com-mais-de-32-caracteres";
+  process.env.GEMINI_API_KEY = "CHAVE_PRIVADA";
+  const log = spyOn(console, "error").mockImplementation(() => {});
+  try {
+    const { db } = mockDb();
+    await enviarTutor(db, id, { id, moduloId: id, pergunta: "PERGUNTA_PRIVADA" }, async () => { throw new Error("CHAVE_PRIVADA resposta PERGUNTA_PRIVADA"); });
+    expect(JSON.stringify(log.mock.calls)).toContain("gerar_ou_concluir_resposta");
+    expect(JSON.stringify(log.mock.calls)).not.toMatch(/CHAVE_PRIVADA|PERGUNTA_PRIVADA|segredo-de-teste/);
+  } finally { log.mockRestore(); }
+});
+
+test("histórico pagina sem repetir o limite da página e preserva ordem cronológica", async () => {
+  const { db } = mockDb();
+  const rows = Array.from({ length: 21 }, (_, i) => ({ ...interacao, id: `11111111-1111-4111-8111-${String(i + 1).padStart(12, "0")}`, criado_em: new Date(Date.UTC(2026, 9, 15, 12, 30 - i)).toISOString() }));
+  const original = db.from.bind(db);
+  const filters: string[] = [];
+  db.from = ((table: string) => {
+    if (table !== "tutor_interacoes") return original(table as "modulos");
+    const query: Record<string, unknown> = {};
+    for (const method of ["select", "eq", "order", "limit"]) query[method] = () => query;
+    query.or = (filter: string) => { filters.push(filter); return query; };
+    query.then = (resolve: (value: unknown) => unknown) => Promise.resolve({ data: rows, error: null }).then(resolve);
+    return query;
+  }) as typeof db.from;
+  const result = await carregarTutor(db, id, id);
+  expect(result.itens).toHaveLength(20);
+  expect(result.itens[0].id).toBe(rows[19].id);
+  expect(result.itens.at(-1)?.id).toBe(rows[0].id);
+  expect(result.cursor).toEqual({ data: rows[19].criado_em, id: rows[19].id });
+  await carregarTutor(db, id, id, result.cursor!);
+  expect(filters[0]).toContain(`id.lt.${rows[19].id}`);
 });
