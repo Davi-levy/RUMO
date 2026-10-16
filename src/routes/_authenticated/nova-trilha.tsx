@@ -19,6 +19,7 @@ import { CancelarTrilhaPopup } from "@/components/CancelarTrilhaPopup";
 import { MENSAGEM_LIMITE_DIARIO, proximoReinicioDiario } from "@/lib/trilha-limite";
 
 export const Route = createFileRoute("/_authenticated/nova-trilha")({
+  head: () => ({ meta: [{ title: "Nova trilha | RUMO" }, { name: "description", content: "Crie sua trilha de programação com o apoio do Rumo Atlas." }] }),
   component: NovaTrilha,
 });
 

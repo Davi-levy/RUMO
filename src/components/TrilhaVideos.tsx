@@ -67,7 +67,7 @@ export function TrilhaVideos({ trilhaId }: { trilhaId: string }) {
 
   return (
     <section className="mt-14" aria-labelledby="trilha-videos-titulo">
-      <h2 id="trilha-videos-titulo" className="font-display text-2xl font-bold">Videos que podem te ajudar neste conteudo</h2>
+      <h2 id="trilha-videos-titulo" className="font-display text-2xl font-bold">Vídeos que podem te ajudar neste conteúdo</h2>
       <p className="mt-3 text-sm text-muted-foreground">Conteúdo complementar no YouTube para continuar seus estudos.</p>
       {!resultado ? (
         <p className="mt-6 text-sm text-muted-foreground" role="status">Buscando vídeos recomendados...</p>

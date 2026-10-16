@@ -11,8 +11,8 @@ import { techIcons } from "@/lib/tech-icons";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "RUMO" },
-      { name: "description", content: "Trilhas de exercícios com feedback inteligente." },
+      { title: "RUMO | Aprenda programação com apoio da IA" },
+      { name: "description", content: "Aprenda linguagens e frameworks com trilhas personalizadas, exercícios e o tutor Rumo Atlas." },
     ],
   }),
   component: Index,
@@ -136,7 +136,7 @@ function Index() {
               </p>
               <div className="mt-8 h-2 w-full bg-secondary rounded-full overflow-hidden relative">
                 <div className="h-full w-[62%] bg-foreground rounded-full relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse motion-reduce:animate-none" />
                 </div>
               </div>
               <div className="mt-3 flex justify-between font-mono text-xs text-muted-foreground">

@@ -95,6 +95,11 @@
     background-color: var(--color-foreground);
     color: var(--color-background);
   }
+
+  :where(a, button, input, textarea, select, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 3px;
+  }
 }
 
 @layer utilities {
