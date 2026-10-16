@@ -253,6 +253,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      listar_resumo_trilhas: { Args: { p_offset?: number }; Returns: { id: string; titulo: string; linguagem: string; nivel: string; descricao: string | null; total: number; acertos: number }[] }
       consultar_tutor_hoje: { Args: Record<PropertyKey, never>; Returns: number }
       tutor_operacao: { Args: { p_id: string; p_modulo?: string; p_pergunta?: string; p_resposta?: string; p_segredo: string; p_concluir?: boolean }; Returns: Json }
       avaliar_tutor: { Args: { p_id: string; p_avaliacao: number }; Returns: undefined }

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
@@ -7,6 +7,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { TechnologyBadge } from "@/components/TechnologyBadge";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  head: () => ({ meta: [{ title: "Suas trilhas | RUMO" }] }),
   component: Dashboard,
 });
 
@@ -29,43 +30,32 @@ const rotulos: Record<string, string> = {
 function Dashboard() {
   const [trilhas, setTrilhas] = useState<TrilhaCard[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(false);
+  const [pagina, setPagina] = useState(0);
+  const [mais, setMais] = useState(false);
+  const [tentativa, setTentativa] = useState(0);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
+    let ativo = true;
+    const controller = new AbortController();
+    setCarregando(true);
+    setErro(false);
     (async () => {
-      const { data: ts } = await supabase
-        .from("trilhas")
-        .select("id, titulo, linguagem, nivel, descricao")
-        .order("criado_em", { ascending: false });
-
-      const { data: mods } = await supabase.from("modulos").select("id, trilha_id");
-      const { data: exs } = await supabase.from("exercicios").select("id, modulo_id");
-      const { data: resps } = await supabase.from("respostas").select("exercicio_id, acertou");
-
-      const modTrilha = new Map((mods ?? []).map((m) => [m.id, m.trilha_id]));
-      const exTrilha = new Map(
-        (exs ?? []).map((e) => [e.id, modTrilha.get(e.modulo_id) ?? ""]),
-      );
-
-      const total = new Map<string, number>();
-      exTrilha.forEach((tid) => total.set(tid, (total.get(tid) ?? 0) + 1));
-
-      const acertos = new Map<string, number>();
-      (resps ?? []).forEach((r) => {
-        if (!r.acertou) return;
-        const tid = exTrilha.get(r.exercicio_id);
-        if (tid) acertos.set(tid, (acertos.get(tid) ?? 0) + 1);
-      });
-
-      setTrilhas(
-        (ts ?? []).map((t) => ({
-          ...t,
-          total: total.get(t.id) ?? 0,
-          acertos: acertos.get(t.id) ?? 0,
-        })),
-      );
-      setCarregando(false);
+      try {
+        const { data, error } = await supabase.rpc("listar_resumo_trilhas", { p_offset: pagina * 12 }).abortSignal(controller.signal);
+        if (error) throw error;
+        if (!ativo) return;
+        setTrilhas((data ?? []).slice(0, 12));
+        setMais((data?.length ?? 0) > 12);
+      } catch {
+        if (ativo) setErro(true);
+      } finally {
+        if (ativo) setCarregando(false);
+      }
     })();
-  }, []);
+    return () => { ativo = false; controller.abort(); };
+  }, [pagina, tentativa]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,7 +76,7 @@ function Dashboard() {
                 />
               </h1>
               <p className="mt-3 text-sm text-muted-foreground">
-                Escolha uma linguage/framework ou uma dúvida e a nossa IA monta a trilha completa para você.
+                Escolha uma linguagem, um framework ou uma dúvida e a nossa IA monta a trilha completa para você.
               </p>
             </div>
             <Link
@@ -98,11 +88,16 @@ function Dashboard() {
           </div>
 
           {carregando ? (
-            <p className="mt-16 text-sm text-muted-foreground">Carregando...</p>
+            <p role="status" className="mt-16 text-sm text-muted-foreground">Carregando suas trilhas…</p>
+          ) : erro ? (
+            <div role="alert" className="mt-16 border border-border p-6 text-sm">
+              <p>Não foi possível carregar suas trilhas.</p>
+              <button type="button" onClick={() => setTentativa(t => t + 1)} className="mt-4 cursor-pointer underline hover:opacity-70">Tentar novamente</button>
+            </div>
           ) : trilhas.length === 0 ? (
             <div className="mt-16 border border-dashed border-border p-12 text-center">
               <p className="text-sm text-muted-foreground">
-                Você ainda não tem trilhas. Crie a primeira e comece a estudar.
+                {pagina === 0 ? "Você ainda não tem trilhas. Crie a primeira e comece a estudar." : "Não há trilhas nesta página. Volte à página anterior."}
               </p>
               <Link
                 to="/nova-trilha"
@@ -118,9 +113,9 @@ function Dashboard() {
                 return (
                   <motion.div
                     key={t.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={reducedMotion ? false : { opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.06 }}
+                    transition={{ delay: reducedMotion ? 0 : i * 0.06, duration: reducedMotion ? 0 : 0.3 }}
                   >
                     <Link
                       to="/trilha/$trilhaId"
@@ -136,7 +131,7 @@ function Dashboard() {
                         <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{t.descricao}</p>
                       )}
                       <div className="mt-6">
-                        <div className="h-[2px] bg-border">
+                        <div role="progressbar" aria-label={`Progresso de ${t.titulo}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} className="h-[2px] bg-border">
                           <div className="h-full bg-foreground transition-all" style={{ width: `${pct}%` }} />
                         </div>
                         <p className="mt-2 text-xs text-muted-foreground">
@@ -148,6 +143,13 @@ function Dashboard() {
                 );
               })}
             </div>
+          )}
+          {!carregando && !erro && (pagina > 0 || mais) && (
+            <nav aria-label="Páginas de trilhas" className="mt-8 flex items-center justify-between gap-4 text-sm">
+              <button type="button" disabled={pagina === 0} onClick={() => setPagina(p => p - 1)} className="cursor-pointer border border-border px-4 py-2 hover:border-foreground disabled:cursor-not-allowed disabled:opacity-40">Anterior</button>
+              <span aria-live="polite">Página {pagina + 1}</span>
+              <button type="button" disabled={!mais} onClick={() => setPagina(p => p + 1)} className="cursor-pointer border border-border px-4 py-2 hover:border-foreground disabled:cursor-not-allowed disabled:opacity-40">Próxima</button>
+            </nav>
           )}
         </main>
       </PageTransition>

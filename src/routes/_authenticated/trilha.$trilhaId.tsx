@@ -12,6 +12,7 @@ import { TutorAtlas } from "@/components/TutorAtlas";
 const VIDEOS = "videos";
 
 export const Route = createFileRoute("/_authenticated/trilha/$trilhaId")({
+  head: () => ({ meta: [{ title: "Estudar trilha | RUMO" }] }),
   // O módulo aberto fica na URL: recarregar a página ou compartilhar o link mantém a posição.
   validateSearch: (search: Record<string, unknown>): { modulo?: string } =>
     typeof search.modulo === "string" && search.modulo ? { modulo: search.modulo } : {},
@@ -36,43 +37,69 @@ function TrilhaPage() {
   const [modulos, setModulos] = useState<Modulo[]>([]);
   const [feitos, setFeitos] = useState<Set<string>>(new Set());
   const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(false);
+  const [tentativa, setTentativa] = useState(0);
 
   useEffect(() => {
+    let ativo = true;
+    const controller = new AbortController();
+    setCarregando(true);
+    setErro(false);
+    setTrilha(null);
+    setModulos([]);
+    setFeitos(new Set());
     (async () => {
-      const { data: t } = await supabase
-        .from("trilhas")
-        .select("titulo, descricao, linguagem")
-        .eq("id", trilhaId)
-        .maybeSingle();
-      setTrilha(t ?? null);
+      try {
+        const { data: t, error: erroTrilha } = await supabase
+          .from("trilhas")
+          .select("titulo, descricao, linguagem")
+          .eq("id", trilhaId)
+          .abortSignal(controller.signal).maybeSingle();
+        if (erroTrilha) throw erroTrilha;
+        if (!ativo || !t) return;
 
-      const { data: mods } = await supabase
-        .from("modulos")
-        .select("id, titulo, conteudo, ordem")
-        .eq("trilha_id", trilhaId)
-        .order("ordem");
+        const { data: mods, error: erroModulos } = await supabase
+          .from("modulos")
+          .select("id, titulo, conteudo, ordem")
+          .eq("trilha_id", trilhaId)
+          .order("ordem").abortSignal(controller.signal);
+        if (erroModulos) throw erroModulos;
+        if (!ativo) return;
 
-      const ids = (mods ?? []).map((m) => m.id);
-      const { data: exs } = ids.length
-        ? await supabase
-            .from("exercicios")
-            .select("id, pergunta, ordem, modulo_id")
-            .in("modulo_id", ids)
-            .order("ordem")
-        : { data: [] };
+        const ids = (mods ?? []).map((m) => m.id);
+        const { data: exs, error: erroExercicios } = ids.length
+          ? await supabase
+              .from("exercicios")
+              .select("id, pergunta, ordem, modulo_id")
+              .in("modulo_id", ids)
+              .order("ordem").abortSignal(controller.signal)
+          : { data: [], error: null };
+        if (erroExercicios) throw erroExercicios;
+        if (!ativo) return;
 
-      const { data: resps } = await supabase.from("respostas").select("exercicio_id, acertou");
-      setFeitos(new Set((resps ?? []).filter((r) => r.acertou).map((r) => r.exercicio_id)));
+        const exercicioIds = (exs ?? []).map(e => e.id);
+        const { data: resps, error: erroRespostas } = exercicioIds.length
+          ? await supabase.from("respostas").select("exercicio_id, acertou").in("exercicio_id", exercicioIds).abortSignal(controller.signal)
+          : { data: [], error: null };
+        if (erroRespostas) throw erroRespostas;
+        if (!ativo) return;
+        setTrilha(t);
+        setFeitos(new Set((resps ?? []).filter((r) => r.acertou).map((r) => r.exercicio_id)));
 
-      setModulos(
-        (mods ?? []).map((m) => ({
-          ...m,
-          exercicios: (exs ?? []).filter((e) => e.modulo_id === m.id),
-        })),
-      );
-      setCarregando(false);
+        setModulos(
+          (mods ?? []).map((m) => ({
+            ...m,
+            exercicios: (exs ?? []).filter((e) => e.modulo_id === m.id),
+          })),
+        );
+      } catch {
+        if (ativo) setErro(true);
+      } finally {
+        if (ativo) setCarregando(false);
+      }
     })();
-  }, [trilhaId]);
+    return () => { ativo = false; controller.abort(); };
+  }, [trilhaId, tentativa]);
 
   const resumo = useMemo(
     () =>
@@ -142,7 +169,12 @@ function TrilhaPage() {
           </Link>
 
           {carregando ? (
-            <p className="mt-12 text-sm text-muted-foreground">Carregando...</p>
+            <p role="status" className="mt-12 text-sm text-muted-foreground">Carregando sua trilha…</p>
+          ) : erro ? (
+            <div role="alert" className="mt-12 border border-border p-6 text-sm">
+              <p>Não foi possível carregar esta trilha.</p>
+              <button type="button" onClick={() => setTentativa(t => t + 1)} className="mt-4 cursor-pointer underline hover:opacity-70">Tentar novamente</button>
+            </div>
           ) : !trilha ? (
             <p className="mt-12 text-sm text-muted-foreground">Trilha não encontrada.</p>
           ) : (
