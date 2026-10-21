@@ -208,9 +208,11 @@ function NovaTrilha() {
 
   return (
     <div className="relative isolate min-h-screen bg-background">
-      <div aria-hidden="true" className="nova-trilha-background pointer-events-none absolute inset-x-0 top-0 -z-10 h-1/2 overflow-hidden">
-        <GlyphMatrix />
-      </div>
+      {gerando && (
+        <div aria-hidden="true" className="nova-trilha-background pointer-events-none absolute inset-x-0 top-0 -z-10 h-1/2 overflow-hidden">
+          <GlyphMatrix />
+        </div>
+      )}
       <Navbar />
       <PageTransition>
         <main className="max-w-2xl mx-auto px-6 pt-32 pb-24">
