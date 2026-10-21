@@ -5,6 +5,7 @@ import { LandingExperience } from "@/components/LandingExperience";
 import { HeroOrbits } from "@/components/HeroOrbits";
 import { FlipWords } from "@/components/FlipWords";
 import { techIcons } from "@/lib/tech-icons";
+import { LandingBackground } from "@/components/LandingBackground";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -50,9 +51,10 @@ const heroTecnologias = Object.keys(heroCores);
 
 function Index() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="relative isolate min-h-screen bg-background text-foreground">
+      <LandingBackground />
       <Navbar />
-      <main>
+      <main className="relative z-10">
         {/* Hero */}
         <section className="relative pt-32 pb-16 lg:pt-40 lg:pb-32 px-6 overflow-hidden">
           <div className="relative max-w-5xl mx-auto grid items-center gap-12 lg:grid-cols-[1.15fr_1fr] lg:gap-8">

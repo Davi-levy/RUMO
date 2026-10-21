@@ -112,6 +112,89 @@
   }
 }
 
+.landing-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse at 50% 35%, rgb(0 0 0 / 0.2), #000 85%);
+}
+
+.landing-background-dots {
+  position: absolute;
+  inset: -48px;
+  background-image: radial-gradient(rgb(255 255 255 / 0.16) 0.8px, transparent 1px);
+  background-size: 48px 48px;
+  animation: trilhas-grid-drift 48s linear infinite reverse;
+}
+
+.landing-background-glow {
+  position: absolute;
+  top: -200px;
+  right: -180px;
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgb(255 255 255 / 0.1), transparent 68%);
+  animation: trilhas-glow-drift 26s ease-in-out infinite alternate;
+}
+
+.landing-background-glow-secondary {
+  top: auto;
+  right: auto;
+  bottom: -260px;
+  left: -300px;
+  animation-delay: -13s;
+  animation-direction: alternate-reverse;
+}
+
+.landing-background-lane {
+  position: absolute;
+  inset-block: 0;
+  left: max(20px, calc(50% - 640px));
+  width: 1px;
+  background: linear-gradient(transparent, rgb(255 255 255 / 0.055), transparent);
+}
+
+.landing-background-lane-secondary {
+  right: max(20px, calc(50% - 640px));
+  left: auto;
+}
+
+.landing-background-light {
+  position: absolute;
+  top: -140px;
+  left: 0;
+  width: 1px;
+  height: 140px;
+  background: linear-gradient(transparent, rgb(255 255 255 / 0.4), transparent);
+  animation: landing-light-travel 16s linear infinite;
+}
+
+.landing-background-lane-secondary .landing-background-light {
+  animation-duration: 22s;
+  animation-delay: -11s;
+}
+
+@keyframes landing-light-travel {
+  to { transform: translate3d(0, calc(100vh + 280px), 0); }
+}
+
+@media (max-width: 640px) {
+  .landing-background-glow {
+    width: 480px;
+    height: 480px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-background-dots,
+  .landing-background-glow,
+  .landing-background-light {
+    animation: none;
+  }
+}
+
 @plugin "@tailwindcss/typography";
 @source "../src";
 
