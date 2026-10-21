@@ -7,13 +7,6 @@
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
 }
 
-@layer components {
-  .bento {
-    border: 1px solid var(--color-border);
-    padding: 2rem;
-    background: var(--color-card);
-  }
-}
 @plugin "@tailwindcss/typography";
 @source "../src";
 

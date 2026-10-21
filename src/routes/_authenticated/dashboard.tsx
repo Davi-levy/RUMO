@@ -60,7 +60,7 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <PageTransition>
+      <PageTransition subtle>
         <main className="max-w-5xl mx-auto px-6 pt-32 pb-24">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
@@ -108,14 +108,14 @@ function Dashboard() {
             </div>
           ) : (
             <div className="mt-12 grid gap-4 sm:grid-cols-2">
-              {trilhas.map((t, i) => {
+              {trilhas.map((t) => {
                 const pct = t.total ? Math.round((t.acertos / t.total) * 100) : 0;
                 return (
                   <motion.div
                     key={t.id}
-                    initial={reducedMotion ? false : { opacity: 0, y: 20 }}
+                    initial={reducedMotion ? false : { opacity: 0.9, y: 3 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: reducedMotion ? 0 : i * 0.06, duration: reducedMotion ? 0 : 0.3 }}
+                    transition={{ duration: reducedMotion ? 0 : 0.16 }}
                   >
                     <Link
                       to="/trilha/$trilhaId"

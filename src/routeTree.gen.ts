@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
+import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedNovaTrilhaRouteImport } from './routes/_authenticated/nova-trilha'
@@ -42,6 +43,11 @@ const PrivacidadeRoute = PrivacidadeRouteImport.update({
 const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
   id: '/redefinir-senha',
   path: '/redefinir-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SobreRoute = SobreRouteImport.update({
+  id: '/sobre',
+  path: '/sobre',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermosRoute = TermosRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/privacidade': typeof PrivacidadeRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/nova-trilha': typeof AuthenticatedNovaTrilhaRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/privacidade': typeof PrivacidadeRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/nova-trilha': typeof AuthenticatedNovaTrilhaRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/privacidade': typeof PrivacidadeRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/nova-trilha': typeof AuthenticatedNovaTrilhaRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/privacidade'
     | '/redefinir-senha'
+    | '/sobre'
     | '/termos'
     | '/dashboard'
     | '/nova-trilha'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/privacidade'
     | '/redefinir-senha'
+    | '/sobre'
     | '/termos'
     | '/dashboard'
     | '/nova-trilha'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/privacidade'
     | '/redefinir-senha'
+    | '/sobre'
     | '/termos'
     | '/_authenticated/dashboard'
     | '/_authenticated/nova-trilha'
@@ -150,6 +162,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
+  SobreRoute: typeof SobreRoute
   TermosRoute: typeof TermosRoute
 }
 
@@ -188,6 +201,13 @@ declare module '@tanstack/react-router' {
       path: '/redefinir-senha'
       fullPath: '/redefinir-senha'
       preLoaderRoute: typeof RedefinirSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sobre': {
+      id: '/sobre'
+      path: '/sobre'
+      fullPath: '/sobre'
+      preLoaderRoute: typeof SobreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/termos': {
@@ -251,6 +271,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,
+  SobreRoute: SobreRoute,
   TermosRoute: TermosRoute,
 }
 export const routeTree = rootRouteImport
