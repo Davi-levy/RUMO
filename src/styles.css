@@ -7,6 +7,111 @@
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
 }
 
+.trilhas-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  mask-image: linear-gradient(to bottom, #000 0%, #000 65%, transparent 100%);
+}
+
+.trilhas-background-grid {
+  position: absolute;
+  inset: -48px;
+  background-image: radial-gradient(rgb(255 255 255 / 0.16) 0.8px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at 50% 28%, transparent 20%, #000 85%);
+  animation: trilhas-grid-drift 40s linear infinite;
+}
+
+.trilhas-background-glow {
+  position: absolute;
+  top: -240px;
+  left: -220px;
+  width: 720px;
+  height: 720px;
+  background: radial-gradient(circle, rgb(255 255 255 / 0.075), transparent 68%);
+  animation: trilhas-glow-drift 24s ease-in-out infinite alternate;
+}
+
+.trilhas-background-glow-secondary {
+  top: 20%;
+  right: -300px;
+  left: auto;
+  animation-delay: -12s;
+  animation-direction: alternate-reverse;
+}
+
+.trilhas-background-paths {
+  position: absolute;
+  inset: 64px 0 0;
+  width: 100%;
+  height: calc(100% - 64px);
+  mask-image: radial-gradient(ellipse at 50% 30%, rgb(0 0 0 / 0.15), #000 80%);
+}
+
+.trilhas-background-track {
+  stroke: rgb(255 255 255 / 0.09);
+  stroke-width: 1;
+}
+
+.trilhas-background-spark {
+  stroke: rgb(255 255 255 / 0.5);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 0.008 0.992;
+  animation: trilhas-path-travel 20s linear infinite;
+}
+
+.trilhas-background-paths g:nth-child(2) .trilhas-background-spark {
+  animation-duration: 26s;
+  animation-delay: -9s;
+}
+
+.trilhas-background-paths g:nth-child(3) .trilhas-background-spark {
+  animation-duration: 30s;
+  animation-delay: -18s;
+}
+
+.trilhas-background-paths g:nth-child(4) .trilhas-background-spark {
+  animation-duration: 24s;
+  animation-delay: -6s;
+}
+
+@keyframes trilhas-grid-drift {
+  to { transform: translate3d(48px, 48px, 0); }
+}
+
+@keyframes trilhas-glow-drift {
+  from { transform: translate3d(0, 0, 0); opacity: 0.45; }
+  to { transform: translate3d(70px, 55px, 0); opacity: 0.9; }
+}
+
+@keyframes trilhas-path-travel {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@media (max-width: 640px) {
+  .trilhas-background-glow {
+    width: 440px;
+    height: 440px;
+  }
+
+  .trilhas-background-paths g:nth-child(n + 3) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trilhas-background-grid,
+  .trilhas-background-glow,
+  .trilhas-background-spark {
+    animation: none;
+  }
+}
+
 @plugin "@tailwindcss/typography";
 @source "../src";
 

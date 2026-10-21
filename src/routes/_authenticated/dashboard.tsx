@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { PageTransition } from "@/components/PageTransition";
 import { TechnologyBadge } from "@/components/TechnologyBadge";
+import { DashboardBackground } from "@/components/DashboardBackground";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Suas trilhas | RUMO" }] }),
@@ -58,10 +59,11 @@ function Dashboard() {
   }, [pagina, tentativa]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative isolate min-h-screen bg-background">
+      <DashboardBackground />
       <Navbar />
       <PageTransition subtle>
-        <main className="max-w-5xl mx-auto px-6 pt-32 pb-24">
+        <main className="relative z-10 max-w-5xl mx-auto px-6 pt-32 pb-24">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
               <h1 className="flex items-center gap-2 font-display text-4xl font-bold">
@@ -90,12 +92,12 @@ function Dashboard() {
           {carregando ? (
             <p role="status" className="mt-16 text-sm text-muted-foreground">Carregando suas trilhas…</p>
           ) : erro ? (
-            <div role="alert" className="mt-16 border border-border p-6 text-sm">
+            <div role="alert" className="mt-16 border border-border bg-card/90 p-6 text-sm">
               <p>Não foi possível carregar suas trilhas.</p>
               <button type="button" onClick={() => setTentativa(t => t + 1)} className="mt-4 cursor-pointer underline hover:opacity-70">Tentar novamente</button>
             </div>
           ) : trilhas.length === 0 ? (
-            <div className="mt-16 border border-dashed border-border p-12 text-center">
+            <div className="mt-16 border border-dashed border-border bg-card/90 p-12 text-center">
               <p className="text-sm text-muted-foreground">
                 {pagina === 0 ? "Você ainda não tem trilhas. Crie a primeira e comece a estudar." : "Não há trilhas nesta página. Volte à página anterior."}
               </p>
@@ -120,7 +122,7 @@ function Dashboard() {
                     <Link
                       to="/trilha/$trilhaId"
                       params={{ trilhaId: t.id }}
-                      className="block border border-border p-6 hover:border-foreground transition-colors h-full"
+                      className="block border border-border bg-card/90 p-6 hover:border-foreground transition-colors h-full"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-widest text-muted-foreground">
                         <TechnologyBadge language={t.linguagem} />
