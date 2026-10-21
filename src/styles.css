@@ -118,15 +118,15 @@
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
-  mask-image: radial-gradient(ellipse at 50% 35%, rgb(0 0 0 / 0.65), #000 85%);
+  mask-image: radial-gradient(ellipse at 50% 35%, rgb(0 0 0 / 0.55), #000 85%);
 }
 
 .landing-background-dots {
   position: absolute;
   inset: -48px;
-  background-image: radial-gradient(rgb(255 255 255 / 0.34) 1.2px, transparent 1.6px);
+  background-image: radial-gradient(rgb(255 255 255 / 0.27) 1px, transparent 1.5px);
   background-size: 48px 48px;
-  animation: trilhas-grid-drift 18s linear infinite reverse;
+  animation: trilhas-grid-drift 24s linear infinite reverse;
 }
 
 .landing-background-glow {
@@ -135,8 +135,8 @@
   right: -180px;
   width: 1000px;
   height: 1000px;
-  background: radial-gradient(circle, rgb(255 255 255 / 0.18), transparent 68%);
-  animation: landing-glow-drift 14s ease-in-out infinite alternate;
+  background: radial-gradient(circle, rgb(255 255 255 / 0.13), transparent 68%);
+  animation: landing-glow-drift 18s ease-in-out infinite alternate;
 }
 
 .landing-background-glow-secondary {
@@ -144,7 +144,7 @@
   right: auto;
   bottom: -260px;
   left: -300px;
-  animation-delay: -7s;
+  animation-delay: -9s;
   animation-direction: alternate-reverse;
 }
 
@@ -153,7 +153,7 @@
   inset-block: 0;
   left: max(20px, calc(50% - 640px));
   width: 2px;
-  background: linear-gradient(transparent, rgb(255 255 255 / 0.12), transparent);
+  background: linear-gradient(transparent, rgb(255 255 255 / 0.09), transparent);
 }
 
 .landing-background-lane-secondary {
@@ -167,20 +167,20 @@
   left: 0;
   width: 2px;
   height: 220px;
-  background: linear-gradient(transparent, rgb(255 255 255 / 0.85), transparent);
-  box-shadow: 0 0 18px rgb(255 255 255 / 0.3);
-  animation: landing-light-travel 9s linear infinite;
+  background: linear-gradient(transparent, rgb(255 255 255 / 0.62), transparent);
+  box-shadow: 0 0 12px rgb(255 255 255 / 0.12);
+  animation: landing-light-travel 12s linear infinite;
   animation-delay: -3s;
 }
 
 .landing-background-lane-secondary .landing-background-light {
-  animation-duration: 12s;
-  animation-delay: -6s;
+  animation-duration: 16s;
+  animation-delay: -8s;
 }
 
 @keyframes landing-glow-drift {
   from { transform: translate3d(20px, -20px, 0); opacity: 0.6; }
-  to { transform: translate3d(-120px, 100px, 0); opacity: 1; }
+  to { transform: translate3d(-85px, 65px, 0); opacity: 1; }
 }
 
 @keyframes landing-light-travel {
