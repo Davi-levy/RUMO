@@ -24,13 +24,14 @@ afterEach(() => {
   else process.env.GEMINI_API_KEY = originalKey;
 });
 
-function banco(geracoes = 0, avaliacoes = 0, reservaError?: string) {
+function banco(geracoes = 0, avaliacoes = 0, reservaError?: string, ilimitado = false) {
   const chamadas: string[] = [];
   const client = { rpc: async (name: string) => {
     chamadas.push(name);
+    if (name === "consultar_geracao_ilimitada") return { data: ilimitado, error: null };
     if (name === "consultar_geracoes_hoje") return { data: geracoes, error: null };
     if (name === "consultar_avaliacoes_hoje") return { data: avaliacoes, error: null };
-    if (name === "reservar_avaliacao_tema") return reservaError ? { data: null, error: { code: reservaError } } : { data: ++avaliacoes, error: null };
+    if (name === "reservar_avaliacao_tema") return reservaError ? { data: null, error: { code: reservaError } } : { data: ilimitado ? 0 : ++avaliacoes, error: null };
     return { data: geracaoId, error: null };
   } } as unknown as SupabaseClient<Database>;
   return { client, chamadas };
@@ -122,4 +123,13 @@ test("falhas temporárias, JSON inválido e plano incoerente usam apenas uma req
     await expect(avaliarTema(tema)).rejects.toThrow();
     expect(calls).toBe(1);
   }
+});
+
+// A exceção vem do banco, não de email ou metadados enviados pelo navegador.
+test("conta autorizada continua gerando após as cotas normais", async () => {
+  const { client, chamadas } = banco(20, 30, undefined, true);
+  const resultado = await planejarTrilha(client, usuarioId, tema, async () => ({ status: "aprovado", plano }));
+  expect(resultado.status).toBe("aprovado");
+  expect(resultado.avaliacoesRestantes).toBe(5);
+  expect(chamadas).toContain("reservar_geracao_trilha");
 });

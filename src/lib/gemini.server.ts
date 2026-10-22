@@ -1,6 +1,14 @@
 import { z } from "zod";
 import { extrairJson } from "./trilha.server";
 
+export type CodigoErroGemini = "configuracao" | "conexao" | "timeout" | "cota" | "acesso" | "modelo" | "provedor" | "resposta" | "bloqueio";
+export class ErroGemini extends Error {
+  constructor(public readonly codigo: CodigoErroGemini, mensagem: string) {
+    super(mensagem);
+    this.name = "ErroGemini";
+  }
+}
+
 const ResponseSchema = z.object({
   promptFeedback: z.object({ blockReason: z.string().optional() }).optional(),
   candidates: z.array(z.object({
@@ -23,8 +31,8 @@ export async function gerarJsonGemini<T>(options: {
 }) {
   const key = process.env.GEMINI_API_KEY?.trim();
   const model = process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash-lite";
-  if (!key) throw new Error("Configure GEMINI_API_KEY no servidor para gerar trilhas.");
-  if (!/^[a-zA-Z0-9._-]+$/.test(model)) throw new Error("GEMINI_MODEL inválido.");
+  if (!key) throw new ErroGemini("configuracao", "Configure GEMINI_API_KEY no servidor para gerar trilhas.");
+  if (!/^[a-zA-Z0-9._-]+$/.test(model)) throw new ErroGemini("configuracao", "GEMINI_MODEL inválido.");
 
   let erroAnterior: string | undefined;
   // O prazo cobre as duas tentativas e a leitura do corpo, não apenas os headers.
@@ -49,7 +57,7 @@ export async function gerarJsonGemini<T>(options: {
         }),
       });
     } catch {
-      throw new Error("Não foi possível conectar ao Gemini ou o tempo de espera terminou. Tente novamente.");
+      throw new ErroGemini(signal.aborted ? "timeout" : "conexao", "Não foi possível conectar ao Gemini ou o tempo de espera terminou. Tente novamente.");
     }
 
     // Nunca repassa o corpo de erros do provedor: pode conter informações sensíveis.
@@ -58,21 +66,21 @@ export async function gerarJsonGemini<T>(options: {
         await new Promise(resolve => setTimeout(resolve, 1000));
         continue;
       }
-      if (response.status === 429) throw new Error("Limite de uso do Gemini atingido. Aguarde e verifique a cota da API.");
-      if (response.status === 401 || response.status === 403) throw new Error("O Gemini recusou o acesso. Verifique a chave e as permissões no servidor.");
-      if (response.status === 404) throw new Error("Modelo Gemini indisponível. Verifique GEMINI_MODEL no servidor.");
-      throw new Error(`O Gemini não conseguiu gerar o conteúdo (HTTP ${response.status}). Tente novamente.`);
+      if (response.status === 429) throw new ErroGemini("cota", "Limite de uso do Gemini atingido. Aguarde e verifique a cota da API.");
+      if (response.status === 401 || response.status === 403) throw new ErroGemini("acesso", "O Gemini recusou o acesso. Verifique a chave e as permissões no servidor.");
+      if (response.status === 404) throw new ErroGemini("modelo", "Modelo Gemini indisponível. Verifique GEMINI_MODEL no servidor.");
+      throw new ErroGemini("provedor", `O Gemini não conseguiu gerar o conteúdo (HTTP ${response.status}). Tente novamente.`);
     }
 
     let result: z.infer<typeof ResponseSchema>;
     try {
       result = ResponseSchema.parse(await response.json());
     } catch {
-      throw new Error("O Gemini retornou uma resposta inesperada. Tente novamente.");
+      throw new ErroGemini(signal.aborted ? "timeout" : "resposta", "O Gemini retornou uma resposta inesperada. Tente novamente.");
     }
     const candidate = result.candidates?.[0];
     if (result.promptFeedback?.blockReason || (candidate?.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason))) {
-      throw new Error("O Gemini não pôde gerar esse conteúdo. Tente outro tema.");
+      throw new ErroGemini("bloqueio", "O Gemini não pôde gerar esse conteúdo. Tente outro tema.");
     }
 
     try {
@@ -99,7 +107,7 @@ export async function gerarJsonGemini<T>(options: {
       console.warn("[Gemini] Resposta rejeitada", { tentativa: tentativa + 1, motivo: erroAnterior });
     }
   }
-  throw new Error(maxAttempts === 1
+  throw new ErroGemini("resposta", maxAttempts === 1
     ? "O Gemini não retornou um planejamento válido. Tente novamente."
     : "O Gemini não retornou conteúdo válido após duas tentativas. Tente novamente.");
 }

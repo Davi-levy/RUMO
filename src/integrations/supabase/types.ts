@@ -27,8 +27,8 @@ export type Database = {
         Relationships: [{ foreignKeyName: "relatos_exercicios_exercicio_id_fkey"; columns: ["exercicio_id"]; isOneToOne: false; referencedRelation: "exercicios"; referencedColumns: ["id"] }]
       }
       avaliacoes_temas: {
-        Row: { id: string; usuario_id: string; dia: string; vaga: number; criado_em: string }
-        Insert: { usuario_id: string; vaga: number }
+        Row: { id: string; usuario_id: string; dia: string; vaga: number | null; criado_em: string }
+        Insert: { usuario_id: string; vaga: number | null }
         Update: never
         Relationships: []
       }
@@ -45,8 +45,8 @@ export type Database = {
         }]
       }
       geracoes_trilhas: {
-        Row: { id: string; usuario_id: string; dia: string; vaga: number; criado_em: string }
-        Insert: { usuario_id: string; vaga: number }
+        Row: { id: string; usuario_id: string; dia: string; vaga: number | null; criado_em: string }
+        Insert: { usuario_id: string; vaga: number | null }
         Update: never
         Relationships: []
       }
@@ -253,6 +253,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consultar_geracao_ilimitada: { Args: Record<PropertyKey, never>; Returns: boolean }
       listar_resumo_trilhas: { Args: { p_offset?: number }; Returns: { id: string; titulo: string; linguagem: string; nivel: string; descricao: string | null; total: number; acertos: number }[] }
       consultar_tutor_hoje: { Args: Record<PropertyKey, never>; Returns: number }
       tutor_operacao: { Args: { p_id: string; p_modulo?: string; p_pergunta?: string; p_resposta?: string; p_segredo: string; p_concluir?: boolean }; Returns: Json }

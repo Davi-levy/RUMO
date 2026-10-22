@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { z } from "zod";
-import { gerarJsonGemini } from "./gemini.server";
-import { InteracaoTutorSchema, montarContextoTutor, POLITICA_TUTOR, type CursorTutor } from "./tutor.shared";
+import { ErroGemini, gerarJsonGemini } from "./gemini.server";
+import { FALHAS_TUTOR, InteracaoTutorSchema, montarContextoTutor, POLITICA_TUTOR, type CursorTutor } from "./tutor.shared";
 import { proximoReinicioDiario } from "./trilha-limite";
 
 type Client = SupabaseClient<Database>;
@@ -50,7 +50,7 @@ export async function enviarTutor(db: Client, usuario: string, input: { id: stri
   const modelo = process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash-lite";
   if (!segredo || segredo.length < 32 || !process.env.GEMINI_API_KEY?.trim() || !/^[a-zA-Z0-9._-]+$/.test(modelo)) {
     registrarFalha("configuracao");
-    throw new Error("O Atlas está indisponível no momento.");
+    throw new Error(FALHAS_TUTOR.configuracao);
   }
   const modulo = await moduloProprio(db, input.moduloId);
   const { data: trilha, error: errTrilha } = await db.from("trilhas").select("titulo, nivel, linguagem").eq("id", modulo.trilha_id).single();
@@ -71,21 +71,33 @@ export async function enviarTutor(db: Client, usuario: string, input: { id: stri
   if (error) {
     const status = error.message.includes("TUTOR_LIMITE") ? "limite" as const : error.message.includes("TUTOR_PENDENTE") ? "pendente" as const : "erro" as const;
     if (status === "erro") registrarFalha("reservar_mensagem", error);
-    return { status, ...await limiteTutor(db, usuario) };
+    return { status, mensagem: status === "erro" ? (error.code === "42501" ? FALHAS_TUTOR.configuracao : FALHAS_TUTOR.indisponivel) : undefined, ...await limiteTutor(db, usuario) };
   }
   const reserva = z.object({ executar: z.boolean(), interacao: InteracaoTutorSchema }).parse(data);
-  if (!reserva.executar) return { status: "ok" as const, interacao: reserva.interacao, ...await limiteTutor(db, usuario) };
+  if (!reserva.executar) return { status: "ok" as const, interacao: reserva.interacao, mensagem: undefined, ...await limiteTutor(db, usuario) };
   let interacao = reserva.interacao;
+  let mensagem: string | undefined;
+  let etapa = "gerar_resposta";
   try {
     const resultado = await gerar(montarContextoTutor(modulo, trilha, [...hist ?? []].reverse(), erros, input.pergunta));
+    etapa = "salvar_resposta";
     const complete = await db.rpc("tutor_operacao", { p_id: input.id, p_resposta: resultado.resposta, p_segredo: segredo, p_concluir: true });
-    if (complete.error) { registrarFalha("salvar_resposta", complete.error); throw new Error(); }
+    if (complete.error) { registrarFalha("salvar_resposta", complete.error); throw new Error(FALHAS_TUTOR.salvar); }
     interacao = InteracaoTutorSchema.parse(complete.data);
-  } catch {
-    registrarFalha("gerar_ou_concluir_resposta");
+  } catch (erro) {
+    const codigo = erro instanceof ErroGemini ? erro.codigo : etapa;
+    registrarFalha("gerar_ou_concluir_resposta", { code: codigo.toUpperCase() });
+    mensagem = erro instanceof ErroGemini
+      ? erro.codigo === "cota" ? FALHAS_TUTOR.cota
+        : erro.codigo === "timeout" ? FALHAS_TUTOR.timeout
+        : erro.codigo === "conexao" ? FALHAS_TUTOR.conexao
+        : erro.codigo === "resposta" ? FALHAS_TUTOR.resposta
+        : erro.codigo === "bloqueio" ? FALHAS_TUTOR.bloqueio
+        : FALHAS_TUTOR.indisponivel
+      : etapa === "salvar_resposta" ? FALHAS_TUTOR.salvar : FALHAS_TUTOR.indisponivel;
     const falha = await db.rpc("tutor_operacao", { p_id: input.id, p_segredo: segredo, p_concluir: true });
     if (falha.error) registrarFalha("registrar_falha", falha.error);
     interacao = { ...interacao, estado: "falha", resposta: null };
   }
-  return { status: "ok" as const, interacao, ...await limiteTutor(db, usuario) };
+  return { status: "ok" as const, interacao, mensagem, ...await limiteTutor(db, usuario) };
 }

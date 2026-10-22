@@ -42,6 +42,7 @@ function NovaTrilha() {
   const criarModulo = useServerFn(gerarModulo);
   const salvarGeracao = useServerFn(salvarTrilhaGerada);
   const consultarLimite = useServerFn(consultarLimiteDiario);
+  const [ilimitado, setIlimitado] = useState(false);
   const [restantes, setRestantes] = useState<number | null>(null);
   const [limiteAtingido, setLimiteAtingido] = useState(false);
   const [avaliacoesRestantes, setAvaliacoesRestantes] = useState<number | null>(null);
@@ -55,6 +56,7 @@ function NovaTrilha() {
       void consultarLimite().then(limite => {
         if (ativo) {
           setRestantes(limite.restantes);
+          setIlimitado(limite.ilimitado);
           setAvaliacoesRestantes(limite.avaliacoesRestantes);
           setReiniciaEm(limite.reiniciaEm);
           if (limite.restantes > 0) setLimiteAtingido(false);
@@ -116,6 +118,7 @@ function NovaTrilha() {
       const limite = await consultarLimite();
       signal.throwIfAborted();
       setRestantes(limite.restantes);
+      setIlimitado(limite.ilimitado);
       setAvaliacoesRestantes(limite.avaliacoesRestantes);
       setReiniciaEm(limite.reiniciaEm);
       if (limite.restantes === 0) {
@@ -193,6 +196,7 @@ function NovaTrilha() {
         void consultarLimite().then(limite => {
           if (!montado.current || geracaoAtual.current) return;
           setRestantes(limite.restantes);
+          setIlimitado(limite.ilimitado);
           setAvaliacoesRestantes(limite.avaliacoesRestantes);
           setReiniciaEm(limite.reiniciaEm);
           if (!signal.aborted && !temaAprovado && limite.avaliacoesRestantes === 0 && limite.restantes > 0) {
@@ -262,14 +266,14 @@ function NovaTrilha() {
                 Diga o que você quer aprender sobre programação e desenvolvimento. A IA monta os módulos, o conteúdo e os exercícios.
               </p>
               <p className="mt-3 text-xs text-muted-foreground" role="status">
-                {restantes === 0
+                {ilimitado ? "Geração de trilhas sem limite diário para sua conta." : restantes === 0
                   ? "Limite diário atingido. Você poderá gerar novas trilhas após 00h (horário de Brasília)."
                   : `Até 2 gerações por dia${restantes === null ? "" : ` · ${restantes} restante${restantes === 1 ? "" : "s"} hoje`}.`}
-                {" "}Tentativas interrompidas também contam no limite.
+                {!ilimitado && " Tentativas interrompidas também contam no limite."}
               </p>
               <p className="mt-2 text-xs text-muted-foreground" role="status">
-                Até 5 avaliações de tema por dia{avaliacoesRestantes === null ? "" : ` · ${avaliacoesRestantes} restante${avaliacoesRestantes === 1 ? "" : "s"} hoje`}.
-                {" "}Temas recusados não descontam das 2 gerações.
+                {ilimitado ? "Avaliações de tema sem limite diário para sua conta." : `Até 5 avaliações de tema por dia${avaliacoesRestantes === null ? "" : ` · ${avaliacoesRestantes} restante${avaliacoesRestantes === 1 ? "" : "s"} hoje`}.`}
+                {!ilimitado && " Temas recusados não descontam das 2 gerações."}
               </p>
 
               <form onSubmit={submit} className="mt-12 space-y-8">
@@ -281,7 +285,7 @@ function NovaTrilha() {
                     <div id="trilha-tema-recusa" role="alert" className="mt-3 flex items-start gap-3 rounded-[6px] border border-border bg-[#0d0d0d] px-4 py-3 text-sm">
                       <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                       <p className="flex-1 leading-relaxed text-muted-foreground">
-                        Mantenha os pedidos relacionados a programação apenas! Você possui {avaliacoesRestantes} tentativa{avaliacoesRestantes === 1 ? " restante" : "s restantes"}.
+                        {ilimitado ? "Mantenha os pedidos relacionados a programação apenas!" : <>Mantenha os pedidos relacionados a programação apenas! Você possui {avaliacoesRestantes} tentativa{avaliacoesRestantes === 1 ? " restante" : "s restantes"}.</>}
                       </p>
                       <button type="button" aria-label="Fechar aviso de tema recusado" onClick={() => setAvisoRecusa(false)} className="cursor-pointer rounded p-1 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-foreground">
                         <X className="h-4 w-4" aria-hidden="true" />
@@ -361,4 +365,3 @@ function NovaTrilha() {
     </div>
   );
 }
-

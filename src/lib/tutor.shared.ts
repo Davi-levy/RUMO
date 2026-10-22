@@ -1,5 +1,22 @@
 import { z } from "zod";
 
+export const FALHAS_TUTOR = {
+  configuracao: "O Atlas está temporariamente indisponível por um problema de configuração. Tente novamente mais tarde.",
+  cota: "O serviço de IA atingiu o limite de uso no momento. Tente novamente mais tarde.",
+  timeout: "O Atlas demorou mais que o esperado para responder. Tente novamente em instantes.",
+  conexao: "Não foi possível conectar o Atlas ao serviço de IA. Tente novamente em instantes.",
+  resposta: "O Atlas não conseguiu concluir uma resposta válida. Reformule a pergunta ou tente novamente.",
+  bloqueio: "O Atlas não pôde responder a essa pergunta. Tente reformulá-la sobre o conteúdo do módulo.",
+  salvar: "A resposta não pôde ser confirmada. Atualize a conversa antes de tentar novamente.",
+  indisponivel: "O Atlas está indisponível no momento. Tente novamente mais tarde.",
+} as const;
+
+// Somente mensagens locais conhecidas podem sair de uma exceção para a interface.
+export function mensagemErroTutor(erro: unknown) {
+  return erro instanceof Error && Object.values(FALHAS_TUTOR).some(m => m === erro.message)
+    ? erro.message : FALHAS_TUTOR.indisponivel;
+}
+
 export const InteracaoTutorSchema = z.object({
   id: z.string().uuid(), pergunta: z.string(), resposta: z.string().nullable(),
   estado: z.enum(["pendente", "concluida", "falha"]), avaliacao: z.number().nullable(), criado_em: z.string(),

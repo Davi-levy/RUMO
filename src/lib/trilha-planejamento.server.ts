@@ -25,14 +25,16 @@ export type ResultadoPlanejamento =
   | { status: "fora_do_escopo"; avaliacoesRestantes: number };
 
 export async function consultarLimites(supabase: SupabaseClient<Database>) {
-  const [geracoes, avaliacoes] = await Promise.all([
+  const [geracoes, avaliacoes, permissao] = await Promise.all([
     supabase.rpc("consultar_geracoes_hoje"), supabase.rpc("consultar_avaliacoes_hoje"),
+    supabase.rpc("consultar_geracao_ilimitada"),
   ]);
-  if (geracoes.error || avaliacoes.error || geracoes.data === null || avaliacoes.data === null) {
+  if (geracoes.error || avaliacoes.error || permissao.error || geracoes.data === null || avaliacoes.data === null || typeof permissao.data !== "boolean") {
     throw new Error("Não foi possível consultar seus limites diários.");
   }
-  return { usadas: geracoes.data, restantes: Math.max(0, 2 - geracoes.data),
-    avaliacoesRestantes: Math.max(0, 5 - avaliacoes.data), reiniciaEm: proximoReinicioDiario() };
+  return { usadas: geracoes.data, ilimitado: permissao.data,
+    restantes: permissao.data ? 2 : Math.max(0, 2 - geracoes.data),
+    avaliacoesRestantes: permissao.data ? 5 : Math.max(0, 5 - avaliacoes.data), reiniciaEm: proximoReinicioDiario() };
 }
 
 export async function avaliarTema(tema: { linguagem: string; nivel: Nivel }): Promise<Avaliacao> {

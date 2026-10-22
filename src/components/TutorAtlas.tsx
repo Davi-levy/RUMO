@@ -4,6 +4,7 @@ import { MessageCircle, Mic, Square, Send, ThumbsDown, ThumbsUp, X } from "lucid
 import { toast } from "sonner";
 import { consultarTutor, perguntarTutor, avaliarTutor } from "@/lib/tutor.functions";
 import type { CursorTutor, InteracaoTutor } from "@/lib/tutor.shared";
+import { FALHAS_TUTOR, mensagemErroTutor } from "@/lib/tutor.shared";
 import { formatarTempoLimite, proximoReinicioDiario } from "@/lib/trilha-limite";
 import { Markdown } from "./Markdown";
 import { useDitado } from "@/hooks/useDitado";
@@ -40,6 +41,7 @@ function ConversaAtlas({ moduloId, titulo, onClose }: { moduloId: string; titulo
   const [cursor, setCursor] = useState<CursorTutor | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(false);
+  const [falhaEnvio, setFalhaEnvio] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [avaliando, setAvaliando] = useState<string | null>(null);
   const ler = useServerFn(consultarTutor);
@@ -84,16 +86,25 @@ function ConversaAtlas({ moduloId, titulo, onClose }: { moduloId: string; titulo
     if (!texto.trim() || ditado.ouvindo || pendente || carregando || erro || restantes === null || (restantes === 0 && agora < reiniciaEm)) return;
     const pergunta = texto.trim();
     const id = crypto.randomUUID();
-    setEnviando(true); setTexto("");
+    setEnviando(true); setTexto(""); setFalhaEnvio(null);
     setItens(old => [...old, { id, pergunta, resposta: null, estado: "pendente", avaliacao: null, criado_em: new Date().toISOString() }]);
     try {
       const data = await enviar({ data: { id, moduloId, pergunta } });
       if (!ativo.current) return;
       setRestantes(data.restantes); setReiniciaEm(data.reiniciaEm);
-      if (data.status === "ok") setItens(old => old.map(i => i.id === id ? data.interacao : i));
-      else { setItens(old => old.filter(i => i.id !== id)); setTexto(pergunta); toast.error(data.status === "limite" ? "Limite diário de mensagens do Atlas atingido." : data.status === "pendente" ? "Aguarde a consulta em andamento." : "O Atlas está indisponível no momento."); }
-    } catch {
-      if (ativo.current) { toast.error("Não foi possível confirmar a resposta. Atualize a conversa antes de tentar novamente."); setItens(old => old.filter(i => i.id !== id)); setTexto(pergunta); setErro(true); }
+      if (data.status === "ok") {
+        setItens(old => old.map(i => i.id === id ? data.interacao : i));
+        if (data.interacao.estado === "falha") {
+          setFalhaEnvio(data.mensagem ?? FALHAS_TUTOR.indisponivel);
+          setTexto(atual => atual || pergunta);
+        }
+      }
+      else {
+        setItens(old => old.filter(i => i.id !== id)); setTexto(atual => atual || pergunta);
+        setFalhaEnvio(data.status === "limite" ? "Limite diário de mensagens do Atlas atingido. Tente novamente mais tarde." : data.status === "pendente" ? "Aguarde a consulta em andamento." : data.mensagem ?? FALHAS_TUTOR.indisponivel);
+      }
+    } catch (falha) {
+      if (ativo.current) { setFalhaEnvio(mensagemErroTutor(falha)); setItens(old => old.filter(i => i.id !== id)); setTexto(atual => atual || pergunta); setErro(true); }
     } finally { if (ativo.current) { setEnviando(false); void atualizar(false, true); } }
   }
 
@@ -130,6 +141,7 @@ function ConversaAtlas({ moduloId, titulo, onClose }: { moduloId: string; titulo
         <div ref={fim} />
       </div>
       <form onSubmit={perguntar} className="border-t border-border p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        {falhaEnvio && <p role="alert" className="mb-4 rounded-[3px] border border-border bg-[#0b0b0b] p-3 text-sm leading-relaxed text-muted-foreground">{falhaEnvio}</p>}
         <p className="mb-3 text-xs text-muted-foreground" role="status">{restantes === null ? "Até 5 mensagens por dia." : `${restantes} de 5 mensagens restantes hoje.`}</p>
         {restantes === 0 && agora < reiniciaEm && <div role="status" className="mb-4 rounded-[4px] border border-border bg-[#0b0b0b] p-3 text-sm"><p>Você atingiu o limite de mensagens do Atlas. Tente novamente mais tarde.</p><strong className="mt-2 block text-xs">Tempo até seu limite acabar: {formatarTempoLimite(reiniciaEm, agora)} (horas e minutos)</strong></div>}
         <label htmlFor="atlas-pergunta" className="sr-only">Sua dúvida sobre este módulo</label>

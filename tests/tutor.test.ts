@@ -108,3 +108,33 @@ test("histórico pagina sem repetir o limite da página e preserva ordem cronol�
   await carregarTutor(db, id, id, result.cursor!);
   expect(filters[0]).toContain(`id.lt.${rows[19].id}`);
 });
+
+// Executar sem rede: falhas conhecidas não expõem o corpo do provedor.
+test.each(["cota", "timeout", "conexao", "resposta", "bloqueio"] as const)("Atlas informa a falha %s sem repetir a chamada", async codigo => {
+  const { ErroGemini } = await import("../src/lib/gemini.server");
+  const { FALHAS_TUTOR } = await import("../src/lib/tutor.shared");
+  process.env.TUTOR_SERVER_SECRET = "segredo-de-teste-com-mais-de-32-caracteres";
+  process.env.GEMINI_API_KEY = "teste";
+  const { db } = mockDb();
+  let calls = 0;
+  const result = await enviarTutor(db, id, { id, moduloId: id, pergunta: "Dúvida" }, async () => {
+    calls++; throw new ErroGemini(codigo, "CORPO_PRIVADO_DO_PROVEDOR");
+  });
+  expect(calls).toBe(1);
+  expect(result.status === "ok" && result.interacao.estado).toBe("falha");
+  expect(result.mensagem).toBe(FALHAS_TUTOR[codigo]);
+  expect(JSON.stringify(result)).not.toContain("CORPO_PRIVADO");
+});
+
+test("configuração ausente avisa antes de reservar uma mensagem", async () => {
+  delete process.env.TUTOR_SERVER_SECRET;
+  const { db, calls } = mockDb();
+  await expect(enviarTutor(db, id, { id, moduloId: id, pergunta: "Dúvida" })).rejects.toThrow("problema de configuração");
+  expect(calls).toHaveLength(0);
+});
+
+test("interface aceita apenas mensagens locais conhecidas de exceções", async () => {
+  const { FALHAS_TUTOR, mensagemErroTutor } = await import("../src/lib/tutor.shared");
+  expect(mensagemErroTutor(new Error(FALHAS_TUTOR.configuracao))).toBe(FALHAS_TUTOR.configuracao);
+  expect(mensagemErroTutor(new Error("TOKEN_PRIVADO"))).toBe(FALHAS_TUTOR.indisponivel);
+});
