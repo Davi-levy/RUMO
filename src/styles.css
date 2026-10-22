@@ -41,6 +41,7 @@
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
+  opacity: 0.55;
   mask-image: radial-gradient(ellipse at 50% 35%, rgb(0 0 0 / 0.65), #000 85%);
 }
 
@@ -49,7 +50,7 @@
   inset: -48px;
   background-image: radial-gradient(rgb(255 255 255 / 0.34) 1.2px, transparent 1.6px);
   background-size: 48px 48px;
-  animation: trilhas-grid-drift 18s linear infinite reverse;
+  animation: trilhas-grid-drift 30s linear infinite reverse;
 }
 
 .landing-background-glow {
@@ -59,7 +60,7 @@
   width: 1000px;
   height: 1000px;
   background: radial-gradient(circle, rgb(255 255 255 / 0.18), transparent 68%);
-  animation: landing-glow-drift 14s ease-in-out infinite alternate;
+  animation: landing-glow-drift 22s ease-in-out infinite alternate;
 }
 
 .landing-background-glow-secondary {
@@ -92,12 +93,12 @@
   height: 220px;
   background: linear-gradient(transparent, rgb(255 255 255 / 0.85), transparent);
   box-shadow: 0 0 18px rgb(255 255 255 / 0.3);
-  animation: landing-light-travel 9s linear infinite;
+  animation: landing-light-travel 14s linear infinite;
   animation-delay: -3s;
 }
 
 .landing-background-lane-secondary .landing-background-light {
-  animation-duration: 12s;
+  animation-duration: 18s;
   animation-delay: -6s;
 }
 
