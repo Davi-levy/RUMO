@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { PageTransition } from "@/components/PageTransition";
 import { TechnologyBadge } from "@/components/TechnologyBadge";
-import { DashboardBackground } from "@/components/DashboardBackground";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Suas trilhas | RUMO" }] }),
@@ -60,7 +59,6 @@ function Dashboard() {
 
   return (
     <div className="relative isolate min-h-screen bg-background">
-      <DashboardBackground />
       <Navbar />
       <PageTransition subtle>
         <main className="relative z-10 max-w-5xl mx-auto px-6 pt-32 pb-24">

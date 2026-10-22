@@ -2,6 +2,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } f
 
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
+import { BlackGradientBackground } from "@/components/BlackGradientBackground";
 
 import appCss from "../styles.css?url";
 
@@ -76,14 +77,21 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const internal = pathname !== "/";
+  const page = (
+    <div className={internal ? "internal-page-surface" : undefined}>
+      {internal && <BlackGradientBackground />}
+      <Outlet />
+      <Toaster />
+    </div>
+  );
   // Documentos públicos também precisam abrir se o serviço de autenticação estiver indisponível.
   if (["/privacidade", "/termos"].includes(pathname.replace(/\/$/, ""))) {
-    return <><Outlet /><Toaster /></>;
+    return page;
   }
   return (
     <AuthProvider>
-      <Outlet />
-      <Toaster />
+      {page}
     </AuthProvider>
   );
 }
