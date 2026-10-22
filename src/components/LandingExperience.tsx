@@ -1,6 +1,6 @@
 ﻿import { useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, ChevronDown, Play } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ChevronDown, Play } from "lucide-react";
 import { demoLessons } from "@/lib/public-content";
 import { DemoExercise } from "./DemoExercise";
 import { DemoTutor } from "./DemoTutor";
@@ -32,6 +32,12 @@ const outline = [
   "Eventos do Discord",
   "Seu primeiro bot",
 ];
+
+const exampleVideo = {
+  id: "hdDHg1p3YVc",
+  title: "Curso Python #06 – Tipos Primitivos e Saída de Dados",
+  channel: "Curso em Vídeo",
+};
 
 function FlowPreview({ step }: { step: number }) {
   if (step === 0)
@@ -115,6 +121,7 @@ function FlowPreview({ step }: { step: number }) {
 
 export function LandingExperience() {
   const [active, setActive] = useState(0);
+  const [playingVideo, setPlayingVideo] = useState(false);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const reducedMotion = useReducedMotion();
   return (
@@ -261,27 +268,60 @@ export function LandingExperience() {
       >
         <div className="mx-auto grid max-w-5xl gap-10 md:grid-cols-[1fr_0.9fr] md:items-center md:gap-20">
           <div className="order-2 min-w-0 border border-border md:order-1">
-            <div className="relative flex aspect-video items-center justify-center bg-[#080808]">
-              <div className="absolute left-5 top-5 flex items-center gap-2 text-xs text-muted-foreground">
-                <LanguageIcon language="Python" />
-                Python
-              </div>
-              <Play
-                className="h-10 w-10 text-foreground/75"
-                strokeWidth={1}
-                aria-hidden="true"
+            {playingVideo ? (
+              <iframe
+                className="block aspect-video w-full border-0"
+                title={exampleVideo.title}
+                src={`https://www.youtube-nocookie.com/embed/${exampleVideo.id}?autoplay=1&rel=0&playsinline=1`}
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
               />
-              <span className="absolute bottom-5 left-5 right-5 text-xs text-muted-foreground">
-                Vídeos relacionados ao tema da sua trilha
-              </span>
-            </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setPlayingVideo(true)}
+                aria-label={`Reproduzir vídeo: ${exampleVideo.title}`}
+                className="group relative block aspect-video w-full cursor-pointer overflow-hidden bg-[#080808]"
+              >
+                <img
+                  src={`https://i.ytimg.com/vi/${exampleVideo.id}/hqdefault.jpg`}
+                  alt=""
+                  width={480}
+                  height={360}
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                />
+                <span className="absolute inset-0 flex items-center justify-center bg-black/25 transition-colors group-hover:bg-black/40">
+                  <span className="flex h-16 w-16 items-center justify-center rounded-full bg-black/80 text-white transition-transform group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
+                    <Play className="ml-1 h-7 w-7" fill="currentColor" aria-hidden="true" />
+                  </span>
+                </span>
+                <span className="absolute left-4 top-4 flex items-center gap-2 bg-black/80 px-3 py-2 text-xs text-white">
+                  <LanguageIcon language="Python" />
+                  Python
+                </span>
+                <span className="absolute bottom-4 left-4 bg-black/80 px-3 py-2 text-xs text-white">
+                  Assistir à aula
+                </span>
+              </button>
+            )}
             <div className="border-t border-border px-5 py-4">
               <p className="text-sm font-medium">
-                Outro jeito de olhar para o mesmo assunto.
+                {exampleVideo.title}
               </p>
               <p className="mt-2 text-xs text-muted-foreground">
-                Prévia ilustrativa da seção de vídeos
+                {exampleVideo.channel} · Conteúdo complementar em português
               </p>
+              <a
+                href={`https://www.youtube.com/watch?v=${exampleVideo.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex min-h-10 items-center gap-2 text-xs underline underline-offset-4 hover:opacity-70"
+              >
+                Abrir no YouTube
+                <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
             </div>
           </div>
           <div className="order-1 md:order-2">
